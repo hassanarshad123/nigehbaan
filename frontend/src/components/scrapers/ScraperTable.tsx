@@ -3,8 +3,9 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { Loader2, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { fetchScrapers, type ScraperStatusResponse } from '@/lib/api';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 // ── Status badge ────────────────────────────────────────────────
 
@@ -120,8 +121,25 @@ export function ScraperTable({ statusFilter = 'all' }: ScraperTableProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-6 w-6 animate-spin text-[#94A3B8]" />
+      <div className="rounded-lg border border-[#334155] bg-[#1E293B] overflow-hidden">
+        {/* Desktop skeleton */}
+        <div className="hidden md:block">
+          <div className="skeleton h-10 w-full" />
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="flex gap-4 px-4 py-3 border-b border-[#334155]/30">
+              <div className="skeleton h-5 w-20 rounded-full" />
+              <div className="skeleton h-5 flex-1 rounded" />
+              <div className="skeleton h-5 w-24 rounded" />
+              <div className="skeleton h-5 w-16 rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Mobile skeleton */}
+        <div className="md:hidden space-y-2 p-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="skeleton h-24 rounded-md" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -130,6 +148,7 @@ export function ScraperTable({ statusFilter = 'all' }: ScraperTableProps) {
     sortField === field ? (sortDir === 'asc' ? ' \u2191' : ' \u2193') : '';
 
   return (
+    <FadeIn>
     <div className="rounded-lg border border-[#334155] bg-[#1E293B] overflow-hidden">
       {/* Desktop table */}
       <div className="hidden md:block">
@@ -253,5 +272,6 @@ export function ScraperTable({ statusFilter = 'all' }: ScraperTableProps) {
         </div>
       )}
     </div>
+    </FadeIn>
   );
 }

@@ -77,7 +77,7 @@ export function Header() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setIsMenuOpen((v) => !v)}
-              className="md:hidden flex items-center justify-center h-9 w-9 rounded-md text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B] transition-default"
+              className="md:hidden flex items-center justify-center h-11 w-11 rounded-md text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B] transition-default"
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

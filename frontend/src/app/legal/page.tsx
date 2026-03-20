@@ -7,8 +7,9 @@ import { Footer } from '@/components/layout/Footer';
 import { ExportButton } from '@/components/ui/ExportButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
-import { Scale, Search, FileText, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Scale, Search, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchCourtJudgments, type JudgmentResponse } from '@/lib/api';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 const COURTS = [
   'Lahore High Court',
@@ -141,9 +142,28 @@ export default function LegalPage() {
 
         {/* Loading state */}
         {isLoading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-[#06B6D4]" />
-          </div>
+          <>
+            {/* Desktop skeleton table */}
+            <div className="hidden sm:block rounded-lg border border-[#334155] bg-[#1E293B] overflow-hidden">
+              <div className="skeleton h-11 w-full" />
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="flex gap-4 px-4 py-3 border-b border-[#334155]/30">
+                  <div className="skeleton h-5 w-32 rounded" />
+                  <div className="skeleton h-5 w-24 rounded" />
+                  <div className="skeleton h-5 w-20 rounded" />
+                  <div className="skeleton h-5 w-16 rounded" />
+                  <div className="skeleton h-5 w-20 rounded-full" />
+                  <div className="skeleton h-5 w-16 rounded" />
+                </div>
+              ))}
+            </div>
+            {/* Mobile skeleton cards */}
+            <div className="sm:hidden space-y-2">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="skeleton h-28 rounded-lg" />
+              ))}
+            </div>
+          </>
         )}
 
         {/* Error state */}
@@ -155,7 +175,7 @@ export default function LegalPage() {
 
         {/* Results */}
         {!isLoading && !error && (
-          <>
+          <FadeIn>
             {rows.length === 0 ? (
               <div className="rounded-lg border border-[#334155] bg-[#1E293B]">
                 <EmptyState
@@ -303,7 +323,7 @@ export default function LegalPage() {
                 </div>
               </>
             )}
-          </>
+          </FadeIn>
         )}
       </main>
 

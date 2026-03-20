@@ -22,7 +22,7 @@ export function MobileMapControls() {
         <button
           onClick={() => setIsOpen((v) => !v)}
           className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-lg border border-[#334155] bg-glass-surface transition-default',
+            'flex h-11 w-11 items-center justify-center rounded-lg border border-[#334155] bg-glass-surface transition-default',
             isOpen ? 'text-[#06B6D4]' : 'text-[#94A3B8] hover:text-[#F8FAFC]',
           )}
           aria-label={isOpen ? 'Close layer controls' : 'Open layer controls'}
@@ -31,7 +31,7 @@ export function MobileMapControls() {
         </button>
 
         {isOpen && (
-          <div className="absolute top-12 right-0 w-56 space-y-2 z-40">
+          <div className="absolute top-12 right-0 w-56 max-w-[calc(100vw-4rem)] space-y-2 z-40">
             <LayerControls />
             <MapLegend />
           </div>

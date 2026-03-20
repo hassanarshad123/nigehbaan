@@ -10,9 +10,9 @@ import {
   Tooltip,
   type TooltipProps,
 } from 'recharts';
-import { Loader2 } from 'lucide-react';
 import { fetchCaseTypes } from '@/lib/api';
 import { useFilterStore } from '@/stores/filterStore';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 interface CaseTypeData {
   name: string;
@@ -60,8 +60,17 @@ export function CaseTypeBreakdown() {
     return (
       <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4">
         <h3 className="text-sm font-semibold text-[#F8FAFC] mb-4">Case Type Breakdown</h3>
-        <div className="flex h-52 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-[#94A3B8]" />
+        <div className="flex flex-col items-center gap-4 sm:flex-row">
+          <div className="skeleton h-32 w-32 sm:h-40 sm:w-40 shrink-0 rounded-full" />
+          <div className="space-y-2 flex-1 w-full">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="skeleton h-2.5 w-2.5 rounded-sm shrink-0" />
+                <div className="skeleton h-3 flex-1" />
+                <div className="skeleton h-3 w-10" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -84,9 +93,10 @@ export function CaseTypeBreakdown() {
         Case Type Breakdown
       </h3>
 
+      <FadeIn>
       <div className="flex flex-col items-center gap-4 sm:flex-row">
         {/* Donut chart */}
-        <div className="h-40 w-40 shrink-0 sm:h-52 sm:w-52">
+        <div className="h-32 w-32 shrink-0 sm:h-52 sm:w-52">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -123,6 +133,7 @@ export function CaseTypeBreakdown() {
           ))}
         </div>
       </div>
+      </FadeIn>
     </div>
   );
 }

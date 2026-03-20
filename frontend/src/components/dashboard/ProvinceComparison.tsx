@@ -12,9 +12,9 @@ import {
   ResponsiveContainer,
   type TooltipProps,
 } from 'recharts';
-import { Loader2 } from 'lucide-react';
 import { fetchProvinceComparison } from '@/lib/api';
 import { useFilterStore } from '@/stores/filterStore';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload || payload.length === 0) return null;
@@ -52,13 +52,18 @@ export function ProvinceComparison() {
       <div className="h-48 sm:h-64">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-[#94A3B8]" />
+            <div className="w-full h-full flex items-end gap-2 px-8">
+              {[60, 80, 45, 70, 55].map((h, i) => (
+                <div key={i} className="skeleton flex-1 rounded-t" style={{ height: `${h}%` }} />
+              ))}
+            </div>
           </div>
         ) : chartData.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-sm text-[#94A3B8]">No province data available</p>
           </div>
         ) : (
+          <FadeIn className="h-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
@@ -85,6 +90,7 @@ export function ProvinceComparison() {
               />
             </BarChart>
           </ResponsiveContainer>
+          </FadeIn>
         )}
       </div>
     </div>

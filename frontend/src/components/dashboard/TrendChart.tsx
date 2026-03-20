@@ -12,9 +12,9 @@ import {
   ResponsiveContainer,
   type TooltipProps,
 } from 'recharts';
-import { Loader2 } from 'lucide-react';
 import { fetchTrendData } from '@/lib/api';
 import { useFilterStore } from '@/stores/filterStore';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload || payload.length === 0) return null;
@@ -58,13 +58,23 @@ export function TrendChart() {
       <div className="h-48 sm:h-64">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-[#94A3B8]" />
+            <div className="w-full h-full px-8 py-4">
+              <div className="relative h-full w-full">
+                {/* Grid lines */}
+                {[0, 25, 50, 75].map((pct) => (
+                  <div key={pct} className="absolute left-0 right-0 border-t border-[#334155]/50" style={{ top: `${pct}%` }} />
+                ))}
+                {/* Skeleton line */}
+                <div className="skeleton absolute bottom-0 left-0 right-0 h-1/2 rounded opacity-40" />
+              </div>
+            </div>
           </div>
         ) : chartData.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-sm text-[#94A3B8]">No trend data available</p>
           </div>
         ) : (
+          <FadeIn className="h-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -91,6 +101,7 @@ export function TrendChart() {
               />
             </LineChart>
           </ResponsiveContainer>
+          </FadeIn>
         )}
       </div>
     </div>

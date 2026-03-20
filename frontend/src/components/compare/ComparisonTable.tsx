@@ -33,7 +33,8 @@ export function ComparisonTable({ districts }: ComparisonTableProps) {
 
   return (
     <div className="rounded-lg border border-[#334155] bg-[#1E293B] overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#334155]">
@@ -69,6 +70,26 @@ export function ComparisonTable({ districts }: ComparisonTableProps) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile card view */}
+      <div className="sm:hidden divide-y divide-[#334155]/50">
+        {districts.map((d) => (
+          <div key={d.pcode} className="p-4">
+            <h4 className="text-sm font-semibold text-[#06B6D4] mb-3">{d.nameEn}</h4>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {ROWS.map((row) => {
+                const val = d.vulnerability[row.key] as number | null;
+                return (
+                  <div key={row.key} className="flex flex-col">
+                    <span className="text-[10px] text-[#94A3B8] uppercase tracking-wider">{row.label}</span>
+                    <span className="text-xs text-[#F8FAFC] tabular-nums">{row.format(val)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

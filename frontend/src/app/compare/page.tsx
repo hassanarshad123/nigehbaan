@@ -8,7 +8,8 @@ import { Footer } from '@/components/layout/Footer';
 import { DistrictSelector } from '@/components/compare/DistrictSelector';
 import { ComparisonTable } from '@/components/compare/ComparisonTable';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { GitCompareArrows, Loader2 } from 'lucide-react';
+import { FadeIn } from '@/components/ui/FadeIn';
+import { GitCompareArrows } from 'lucide-react';
 import { fetchDistrictProfile, fetchVulnerability, type DistrictVulnerability } from '@/lib/api';
 
 const ComparisonRadarChart = dynamic(
@@ -78,8 +79,22 @@ export default function ComparePage() {
 
         {/* Loading */}
         {isLoading && selectedPcodes.length > 0 && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-[#06B6D4]" />
+          <div className="space-y-6">
+            {/* Skeleton radar chart */}
+            <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4">
+              <div className="skeleton h-64 w-full rounded-lg" />
+            </div>
+            {/* Skeleton table */}
+            <div className="rounded-lg border border-[#334155] bg-[#1E293B] overflow-hidden">
+              <div className="skeleton h-10 w-full" />
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="flex gap-4 px-4 py-2.5 border-b border-[#334155]/30">
+                  <div className="skeleton h-4 w-28 rounded" />
+                  <div className="skeleton h-4 flex-1 rounded" />
+                  <div className="skeleton h-4 flex-1 rounded" />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -96,10 +111,12 @@ export default function ComparePage() {
 
         {/* Charts and table */}
         {!isLoading && districts.length >= 2 && (
-          <div className="space-y-6">
-            <ComparisonRadarChart districts={districts} />
-            <ComparisonTable districts={districts} />
-          </div>
+          <FadeIn>
+            <div className="space-y-6">
+              <ComparisonRadarChart districts={districts} />
+              <ComparisonTable districts={districts} />
+            </div>
+          </FadeIn>
         )}
 
         {/* Only 1 selected */}

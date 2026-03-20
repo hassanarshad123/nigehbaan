@@ -143,7 +143,7 @@ export function MapContainer() {
   const setViewport = useMapStore((s) => s.setViewport);
   const activeLayers = useMapStore((s) => s.activeLayers);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const { boundaries, filteredIncidents, kilns, borders, vulnerability, routes, countryMask } = useMapData();
+  const { boundaries, filteredIncidents, kilns, borders, vulnerability, routes, countryMask, loading } = useMapData();
   const [popup, setPopup] = useState<PopupInfo | null>(null);
 
   const handleMove = useCallback(
@@ -187,6 +187,16 @@ export function MapContainer() {
 
   return (
     <div className="absolute inset-0">
+      {/* Loading overlay — shown while fetching initial map data */}
+      {loading && !boundaries && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0F172A]/80 backdrop-blur-sm transition-opacity duration-500">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-10 w-10 rounded-full border-2 border-[#06B6D4]/30 border-t-[#06B6D4] animate-spin" />
+            <p className="text-sm text-[#94A3B8]">Loading map data...</p>
+          </div>
+        </div>
+      )}
+
       <Map
         ref={(ref) => {
           if (ref) {

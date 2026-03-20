@@ -36,7 +36,7 @@ export function IncidentPopup({ properties, onClose }: IncidentPopupProps) {
   const confidence = properties.confidence != null ? Number(properties.confidence) : null;
 
   return (
-    <div className="rounded-lg border border-[#334155] bg-[#1E293B] shadow-xl p-3 min-w-[220px] max-w-[280px]">
+    <div className="rounded-lg border border-[#334155] bg-[#1E293B] shadow-xl p-3 w-[min(280px,calc(100vw-2rem))]">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
@@ -47,7 +47,7 @@ export function IncidentPopup({ properties, onClose }: IncidentPopupProps) {
         </div>
         <button
           onClick={onClose}
-          className="text-[#94A3B8] hover:text-[#F8FAFC] text-xs transition-default"
+          className="text-[#94A3B8] hover:text-[#F8FAFC] text-xs transition-default p-2 min-h-[44px] min-w-[44px] flex items-center justify-center -m-2"
           aria-label="Close popup"
         >
           &times;

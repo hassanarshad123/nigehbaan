@@ -33,7 +33,7 @@ export default function HomePage() {
       </div>
 
       {/* Bottom controls container — z-20, stacked to prevent overlap */}
-      <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 z-20 pointer-events-none">
+      <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 z-20 pointer-events-none safe-bottom">
         <div className="flex flex-col items-center gap-2 pointer-events-auto">
           {/* Time slider */}
           <div className="w-full sm:w-96">

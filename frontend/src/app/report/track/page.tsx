@@ -5,9 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { cn } from '@/lib/utils';
-import { Search, FileCheck, Clock, Loader2, ArrowLeft } from 'lucide-react';
+import { Search, FileCheck, Clock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { fetchReportStatus } from '@/lib/api';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 const STATUS_STYLES: Record<string, { bg: string; label: string }> = {
   submitted: { bg: 'bg-[#06B6D4]/10 text-[#06B6D4]', label: 'Submitted' },
@@ -90,8 +91,15 @@ export default function ReportTrackPage() {
 
         {/* Loading */}
         {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-[#06B6D4]" />
+          <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-6">
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="skeleton h-3 w-20" />
+                  <div className="skeleton h-5 w-32 rounded" />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -106,6 +114,7 @@ export default function ReportTrackPage() {
 
         {/* Result */}
         {report && !isLoading && (
+          <FadeIn>
           <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-6">
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs text-[#94A3B8]">Reference</p>
@@ -154,6 +163,7 @@ export default function ReportTrackPage() {
               </div>
             )}
           </div>
+          </FadeIn>
         )}
       </main>
 
