@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { StepCategory } from './StepCategory';
 import { StepLocation } from './StepLocation';
@@ -42,6 +43,7 @@ const INITIAL_DATA: ReportFormData = {
 };
 
 export function ReportForm() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [data, setData] = useState<ReportFormData>(INITIAL_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +77,7 @@ export function ReportForm() {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      await submitPublicReport({
+      const response = await submitPublicReport({
         reportType: data.category!,
         description: data.description,
         latitude: data.latitude ?? undefined,
@@ -84,7 +86,8 @@ export function ReportForm() {
         reporterContact: data.contactPhone || data.contactEmail || undefined,
         isAnonymous: data.anonymous,
       });
-      window.location.href = '/report/success';
+      const ref = (response as Record<string, unknown>).referenceNumber as string | undefined;
+      router.push(`/report/success${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`);
     } catch (err) {
       console.error('Report submission failed:', err);
       setSubmitError('Failed to submit report. Please try again.');

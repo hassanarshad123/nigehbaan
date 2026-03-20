@@ -1,31 +1,35 @@
 'use client';
 
 import React, { type ReactNode } from 'react';
+import { useSession } from 'next-auth/react';
 import { Header } from '@/components/layout/Header';
-import { ShieldAlert } from 'lucide-react';
+import { LoginForm } from '@/components/admin/LoginForm';
+import { Loader2 } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  // Auth check placeholder — in production this would use next-auth session
-  const isAuthenticated = true; // Placeholder
+  const { data: session, status } = useSession();
 
-  if (!isAuthenticated) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen bg-[#0F172A]">
         <Header />
         <main className="flex items-center justify-center pt-32">
-          <div className="rounded-lg border border-[#EF4444]/30 bg-[#1E293B] p-8 text-center max-w-md">
-            <ShieldAlert className="mx-auto h-10 w-10 text-[#EF4444] mb-3" />
-            <h1 className="text-lg font-semibold text-[#F8FAFC] mb-2">
-              Authentication Required
-            </h1>
-            <p className="text-sm text-[#94A3B8]">
-              You must be signed in as an administrator to access this area.
-            </p>
-          </div>
+          <Loader2 className="h-8 w-8 animate-spin text-[#06B6D4]" />
+        </main>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-[#0F172A]">
+        <Header />
+        <main className="pt-32 px-4">
+          <LoginForm />
         </main>
       </div>
     );

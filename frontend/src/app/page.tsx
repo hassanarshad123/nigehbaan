@@ -7,6 +7,7 @@ import { LiveCounter } from '@/components/map/LiveCounter';
 import { SearchBar } from '@/components/map/SearchBar';
 import { IncidentTimeline } from '@/components/map/IncidentTimeline';
 import { MobileMapControls } from '@/components/map/MobileMapControls';
+import { TimeSlider } from '@/components/map/TimeSlider';
 
 const MapContainer = dynamic(
   () => import('@/components/map/MapContainer').then((mod) => mod.MapContainer),
@@ -30,6 +31,11 @@ export default function HomePage() {
       {/* Layer controls — right side */}
       <div className="absolute top-16 right-2 z-40">
         <MobileMapControls />
+      </div>
+
+      {/* Time slider — bottom center above timeline */}
+      <div className="absolute bottom-44 left-2 right-2 sm:bottom-28 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-96 z-40">
+        <TimeSlider />
       </div>
 
       {/* Timeline — bottom center */}

@@ -3,16 +3,45 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from geoalchemy2.elements import WKTElement
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.public_reports import PublicReport
-from app.schemas.reports import ReportCreate, ReportResponse, ReportStatus
+from app.schemas.reports import ReportCreate, ReportListItem, ReportResponse, ReportStatus
 
 router = APIRouter()
+
+
+@router.get("/", response_model=list[ReportListItem])
+async def list_reports(
+    status: str | None = Query(default=None, description="Filter by status"),
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+) -> list[ReportListItem]:
+    """List public reports with optional status filter and pagination."""
+    stmt = select(PublicReport).order_by(PublicReport.created_at.desc())
+
+    if status:
+        stmt = stmt.where(PublicReport.status == status)
+
+    stmt = stmt.offset((page - 1) * limit).limit(limit)
+    result = await db.execute(stmt)
+    reports = result.scalars().all()
+
+    return [
+        ReportListItem(
+            id=r.id,
+            reportType=r.report_type,
+            status=r.status,
+            districtPcode=r.district_pcode,
+            createdAt=r.created_at or datetime.now(tz=timezone.utc),
+        )
+        for r in reports
+    ]
 
 
 @router.post("/", response_model=ReportResponse, status_code=201)

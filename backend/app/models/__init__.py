@@ -11,6 +11,8 @@ from app.models.vulnerability import VulnerabilityIndicator
 from app.models.tip_report import TipReportAnnual
 from app.models.public_reports import PublicReport
 from app.models.news_articles import NewsArticle, DataSource
+from app.models.statistical_reports import StatisticalReport
+from app.models.transparency_reports import TransparencyReport
 
 __all__ = [
     "Base",
@@ -26,4 +28,6 @@ __all__ = [
     "PublicReport",
     "NewsArticle",
     "DataSource",
+    "StatisticalReport",
+    "TransparencyReport",
 ]

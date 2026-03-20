@@ -2,9 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Phone } from 'lucide-react';
 
 export function Footer() {
+  const t = useTranslations('footer');
+
   return (
     <footer className="border-t border-[#334155] bg-[#0F172A] px-4 py-6">
       <div className="mx-auto max-w-screen-2xl">
@@ -13,35 +16,35 @@ export function Footer() {
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <span className="flex items-center gap-1.5 text-[#94A3B8]">
               <Phone className="h-4 w-4 text-[#EF4444]" />
-              Emergency Helplines:
+              {t('emergency')}:
             </span>
             <a
               href="tel:1099"
               className="rounded bg-[#1E293B] px-2 py-0.5 text-[#F8FAFC] hover:bg-[#334155] transition-default"
             >
-              Child Protection: 1099
+              {t('childProtection')}
             </a>
             <a
               href="tel:1098"
               className="rounded bg-[#1E293B] px-2 py-0.5 text-[#F8FAFC] hover:bg-[#334155] transition-default"
             >
-              Edhi: 1098
+              {t('edhi')}
             </a>
             <a
               href="tel:080022444"
               className="rounded bg-[#1E293B] px-2 py-0.5 text-[#F8FAFC] hover:bg-[#334155] transition-default"
             >
-              Roshni: 0800-22444
+              {t('roshni')}
             </a>
           </div>
 
           {/* Links and copyright */}
           <div className="flex items-center gap-4 text-xs text-[#94A3B8]">
             <Link href="/about" className="hover:text-[#F8FAFC] transition-default">
-              About
+              {t('about')}
             </Link>
             <span>|</span>
-            <span>Nigehbaan Project — Open Source Intelligence for Child Protection</span>
+            <span>{t('copyright')}</span>
           </div>
         </div>
         <p className="text-center text-xs text-[#64748B] mt-4 md:mt-0">

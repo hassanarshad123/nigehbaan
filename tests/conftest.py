@@ -290,3 +290,134 @@ def sample_geojson() -> dict:
             },
         ],
     }
+
+
+# ---------- PDF / CSV / Urdu fixtures ----------
+
+
+@pytest.fixture
+def sample_pdf_bytes() -> bytes:
+    """Minimal valid PDF bytes for testing PDF scrapers.
+
+    This is a valid single-page PDF with the text 'Child Labor Statistics'.
+    """
+    # Minimal valid PDF 1.0 with one page and text
+    return (
+        b"%PDF-1.0\n"
+        b"1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
+        b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
+        b"3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R"
+        b"/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj\n"
+        b"4 0 obj<</Length 44>>stream\n"
+        b"BT /F1 12 Tf 100 700 Td (Child Labor Statistics) Tj ET\n"
+        b"endstream\nendobj\n"
+        b"5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj\n"
+        b"xref\n0 6\n"
+        b"0000000000 65535 f \n"
+        b"0000000009 00000 n \n"
+        b"0000000058 00000 n \n"
+        b"0000000115 00000 n \n"
+        b"0000000266 00000 n \n"
+        b"0000000360 00000 n \n"
+        b"trailer<</Size 6/Root 1 0 R>>\n"
+        b"startxref\n431\n%%EOF"
+    )
+
+
+@pytest.fixture
+def sample_csv_content() -> str:
+    """Sample CSV content for testing API scrapers."""
+    return (
+        "ref_area,indicator,sex,age,time,value\n"
+        "PAK,SDG_0871_SEX_AGE_RT,SEX_T,AGE_Y5-17,2019,11.5\n"
+        "PAK,SDG_0871_SEX_AGE_RT,SEX_M,AGE_Y5-17,2019,14.2\n"
+        "PAK,SDG_0871_SEX_AGE_RT,SEX_F,AGE_Y5-17,2019,8.3\n"
+        "IND,SDG_0871_SEX_AGE_RT,SEX_T,AGE_Y5-17,2019,10.1\n"
+    )
+
+
+@pytest.fixture
+def sample_sdmx_xml() -> str:
+    """Sample SDMX XML response for testing ILOSTAT-style API scrapers."""
+    return """<?xml version="1.0" encoding="UTF-8"?>
+<message:GenericData xmlns:message="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message">
+  <message:DataSet>
+    <Series>
+      <SeriesKey>
+        <Value id="REF_AREA" value="PAK"/>
+        <Value id="INDICATOR" value="SDG_0871_SEX_AGE_RT"/>
+        <Value id="SEX" value="SEX_T"/>
+      </SeriesKey>
+      <Obs>
+        <ObsDimension value="2019"/>
+        <ObsValue value="11.5"/>
+      </Obs>
+    </Series>
+  </message:DataSet>
+</message:GenericData>"""
+
+
+@pytest.fixture
+def sample_urdu_html() -> str:
+    """Sample Urdu news HTML for testing Urdu scrapers."""
+    return """<!DOCTYPE html>
+<html dir="rtl" lang="ur">
+<head><meta charset="UTF-8"><title>لاہور میں بچوں سے زیادتی کا واقعہ</title></head>
+<body>
+  <article>
+    <h1 class="story-title">لاہور میں بچوں سے زیادتی کا واقعہ</h1>
+    <span class="date">20 مارچ 2026</span>
+    <div class="story-content">
+      <p>لاہور: پولیس نے بچوں سے زیادتی کے الزام میں پانچ ملزمان کو گرفتار کر لیا۔</p>
+      <p>ایف آئی اے کی ٹیم نے متعدد مقامات پر چھاپے مارے۔ ملزمان بچوں کی سمگلنگ میں ملوث تھے۔</p>
+    </div>
+  </article>
+</body>
+</html>"""
+
+
+@pytest.fixture
+def sample_transparency_html() -> str:
+    """Sample transparency report HTML table."""
+    return """<html><body>
+<table>
+  <thead>
+    <tr><th>Country</th><th>Period</th><th>CSAM Reports</th><th>Content Removed</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Pakistan</td><td>H1 2025</td><td>1250000</td><td>98500</td></tr>
+    <tr><td>Pakistan</td><td>H2 2024</td><td>1180000</td><td>95200</td></tr>
+    <tr><td>India</td><td>H1 2025</td><td>3500000</td><td>245000</td></tr>
+  </tbody>
+</table>
+</body></html>"""
+
+
+@pytest.fixture
+def sample_statistical_record() -> dict:
+    """Sample statistical report record for testing save functions."""
+    return {
+        "source_name": "test_source",
+        "report_year": 2024,
+        "report_title": "Test Annual Report",
+        "indicator": "child_labor_rate",
+        "value": 11.5,
+        "unit": "percent",
+        "geographic_scope": "Pakistan",
+        "extraction_method": "pdfplumber",
+        "extraction_confidence": 0.95,
+    }
+
+
+@pytest.fixture
+def sample_transparency_record() -> dict:
+    """Sample transparency report record for testing save functions."""
+    return {
+        "platform": "Meta",
+        "report_period": "H1 2025",
+        "country": "Pakistan",
+        "metric": "csam_reports",
+        "value": 1250000.0,
+        "unit": "count",
+        "source_url": "https://transparency.meta.com",
+    }

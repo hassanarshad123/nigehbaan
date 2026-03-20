@@ -1,18 +1,32 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Globe } from 'lucide-react';
 
 export function LanguageToggle() {
   const [locale, setLocale] = useState<'en' | 'ur'>('en');
 
+  useEffect(() => {
+    const stored = localStorage.getItem('nigehbaan-locale');
+    if (stored === 'ur') {
+      setLocale('ur');
+      document.documentElement.lang = 'ur';
+      document.documentElement.dir = 'rtl';
+    }
+  }, []);
+
   const toggle = () => {
     const next = locale === 'en' ? 'ur' : 'en';
     setLocale(next);
-    // In production this would trigger next-intl locale switch
+    localStorage.setItem('nigehbaan-locale', next);
     document.documentElement.lang = next;
     document.documentElement.dir = next === 'ur' ? 'rtl' : 'ltr';
+
+    // Dispatch custom event so IntlProvider can react
+    window.dispatchEvent(
+      new CustomEvent('locale-change', { detail: { locale: next } }),
+    );
   };
 
   return (

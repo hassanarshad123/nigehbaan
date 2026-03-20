@@ -37,10 +37,12 @@ services:
     container_name: nigehbaan-api
     ports:
       - "8000:8000"
+    env_file:
+      - backend/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://nigehbaan:nigehbaan_dev@db:5432/nigehbaan
       REDIS_URL: redis://redis:6379/0
-      CORS_ORIGINS: "http://localhost:3000"
+      CORS_ORIGINS: "http://localhost:3000,https://nigehbaan.vercel.app"
       SECRET_KEY: dev-secret-key-change-in-production
     depends_on:
       db:
@@ -56,6 +58,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: nigehbaan-celery-worker
+    env_file:
+      - backend/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://nigehbaan:nigehbaan_dev@db:5432/nigehbaan
       REDIS_URL: redis://redis:6379/0
@@ -73,6 +77,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: nigehbaan-celery-beat
+    env_file:
+      - backend/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://nigehbaan:nigehbaan_dev@db:5432/nigehbaan
       REDIS_URL: redis://redis:6379/0

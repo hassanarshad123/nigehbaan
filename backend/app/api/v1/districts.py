@@ -157,6 +157,17 @@ async def get_district_profile(
     )
     recent_reports = reports_result.scalar() or 0
 
+    # Compute centroid from district geometry
+    centroid_result = await db.execute(
+        select(
+            func.ST_Y(func.ST_Centroid(Boundary.geometry)).label("lat"),
+            func.ST_X(func.ST_Centroid(Boundary.geometry)).label("lon"),
+        ).where(Boundary.pcode == pcode)
+    )
+    centroid = centroid_result.one_or_none()
+    centroid_lat = centroid.lat if centroid else None
+    centroid_lon = centroid.lon if centroid else None
+
     return DistrictProfile(
         pcode=boundary.pcode,
         nameEn=boundary.name_en,
@@ -168,6 +179,8 @@ async def get_district_profile(
         vulnerability=vulnerability,
         convictionRate=conviction_rate,
         recentReports=recent_reports,
+        centroidLat=centroid_lat,
+        centroidLon=centroid_lon,
     )
 
 

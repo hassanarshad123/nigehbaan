@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://orleans-computer-folders-coverage.trycloudflare.com/api/v1/:path*"
+      "destination": "http://13.205.224.14:8000/api/v1/:path*"
     }
   ]
 }

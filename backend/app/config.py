@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_max_concurrent: int = 5
 
+    # External Neon DB for court judgment import (READ ONLY)
+    external_judgments_db_url: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         """Return CORS origins as a list, splitting on commas."""

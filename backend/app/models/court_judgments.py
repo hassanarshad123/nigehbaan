@@ -2,6 +2,7 @@
 
 from datetime import date, datetime
 
+import sqlalchemy as sa
 from sqlalchemy import (
     Boolean,
     Column,
@@ -23,6 +24,9 @@ class CourtJudgment(Base):
     """A court judgment related to trafficking or child abuse."""
 
     __tablename__ = "court_judgments"
+    __table_args__ = (
+        sa.UniqueConstraint("source_url", name="uq_court_judgment_source_url"),
+    )
 
     id: int = Column(Integer, primary_key=True, autoincrement=True)
     court_name: str | None = Column(String(100), nullable=True, index=True)

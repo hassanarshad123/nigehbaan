@@ -2,28 +2,29 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { LanguageToggle } from './LanguageToggle';
 import { Map, BarChart3, FileWarning, Scale, LifeBuoy, Info, Activity, Menu, X } from 'lucide-react';
 
 interface NavItem {
   href: string;
-  label: string;
-  labelUr: string;
+  labelKey: string;
   icon: React.ReactNode;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/', label: 'Map', labelUr: 'نقشہ', icon: <Map className="h-4 w-4" /> },
-  { href: '/dashboard', label: 'Dashboard', labelUr: 'ڈیش بورڈ', icon: <BarChart3 className="h-4 w-4" /> },
-  { href: '/report', label: 'Report', labelUr: 'رپورٹ', icon: <FileWarning className="h-4 w-4" /> },
-  { href: '/legal', label: 'Legal', labelUr: 'قانونی', icon: <Scale className="h-4 w-4" /> },
-  { href: '/scrapers', label: 'Scrapers', labelUr: 'سکریپرز', icon: <Activity className="h-4 w-4" /> },
-  { href: '/resources', label: 'Resources', labelUr: 'وسائل', icon: <LifeBuoy className="h-4 w-4" /> },
-  { href: '/about', label: 'About', labelUr: 'تعارف', icon: <Info className="h-4 w-4" /> },
+  { href: '/', labelKey: 'map', icon: <Map className="h-4 w-4" /> },
+  { href: '/dashboard', labelKey: 'dashboard', icon: <BarChart3 className="h-4 w-4" /> },
+  { href: '/report', labelKey: 'report', icon: <FileWarning className="h-4 w-4" /> },
+  { href: '/legal', labelKey: 'legal', icon: <Scale className="h-4 w-4" /> },
+  { href: '/scrapers', labelKey: 'scrapers', icon: <Activity className="h-4 w-4" /> },
+  { href: '/resources', labelKey: 'resources', icon: <LifeBuoy className="h-4 w-4" /> },
+  { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" /> },
 ];
 
 export function Header() {
+  const t = useTranslations('nav');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -51,7 +52,7 @@ export function Header() {
                 )}
               >
                 {item.icon}
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </Link>
             ))}
           </nav>
@@ -90,7 +91,7 @@ export function Header() {
                 )}
               >
                 {item.icon}
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </Link>
             ))}
           </nav>

@@ -25,5 +25,7 @@ celery_app.conf.update(
 celery_app.conf.include = [
     "app.tasks.scraping_tasks",
     "app.tasks.processing_tasks",
+    "app.tasks.import_tasks",
+    "app.tasks.backfill_tasks",
     "app.tasks.schedule",
 ]

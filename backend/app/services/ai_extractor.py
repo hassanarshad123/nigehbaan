@@ -418,7 +418,7 @@ class AIExtractor:
 
         return ExtractionResult(
             is_relevant=bool(data.get("is_relevant", False)),
-            confidence=float(data.get("confidence", 0.0)),
+            confidence=_safe_float(data.get("confidence"), 0.0),
             incident_type=incident_type,
             sub_type=sub_type,
             victim_count=_safe_int(data.get("victim_count")),
@@ -432,6 +432,16 @@ class AIExtractor:
             raw_extraction=data,
             english_translation=data.get("english_translation"),
         )
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    """Convert a value to float, returning default on failure."""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
 
 
 def _safe_int(value: Any) -> int | None:

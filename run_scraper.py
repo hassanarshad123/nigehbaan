@@ -44,6 +44,37 @@ SCRAPERS = {
     "bhc": ("data.scrapers.courts.bhc", "BHCScraper"),
     "ihc": ("data.scrapers.courts.ihc", "IHCScraper"),
     "commonlii": ("data.scrapers.courts.commonlii", "CommonLIIScraper"),
+    # --- Phase 1: CSA scrapers ---
+    "sahil": ("data.scrapers.government.sahil", "SahilScraper"),
+    "ecpat": ("data.scrapers.international.ecpat", "ECPATScraper"),
+    "pahchaan": ("data.scrapers.government.pahchaan", "PahchaanScraper"),
+    "unicef_pakistan": ("data.scrapers.international.unicef_pakistan", "UNICEFPakistanScraper"),
+    "ncrc": ("data.scrapers.government.ncrc", "NCRCScraper"),
+    "cpwb_punjab": ("data.scrapers.government.cpwb_punjab", "CPWBPunjabScraper"),
+    # --- Phase 2: Online Exploitation scrapers ---
+    "ncmec": ("data.scrapers.international.ncmec", "NCMECScraper"),
+    "iwf_reports": ("data.scrapers.international.iwf_reports", "IWFReportsScraper"),
+    "meta_transparency": ("data.scrapers.international.meta_transparency", "MetaTransparencyScraper"),
+    "google_transparency": ("data.scrapers.international.google_transparency", "GoogleTransparencyScraper"),
+    "drf_newsletters": ("data.scrapers.government.drf_newsletters", "DRFNewslettersScraper"),
+    "weprotect_gta": ("data.scrapers.international.weprotect_gta", "WeProtectGTAScraper"),
+    "bytes_for_all": ("data.scrapers.government.bytes_for_all", "BytesForAllScraper"),
+    # --- Phase 3: Child Labor scrapers ---
+    "ilostat_api": ("data.scrapers.international.ilostat_api", "ILOSTATAPIScraper"),
+    "dol_annual_report": ("data.scrapers.international.dol_annual_report", "DOLAnnualReportScraper"),
+    "dol_tvpra": ("data.scrapers.international.dol_tvpra", "DOLTVPRAScraper"),
+    "labour_surveys": ("data.scrapers.government.labour_surveys", "LabourSurveysScraper"),
+    "zenodo_kilns": ("data.scrapers.international.zenodo_kilns_scraper", "ZenodoKilnsScraper"),
+    "bllf": ("data.scrapers.government.bllf", "BLLFScraper"),
+    "brick_kiln_dashboard": ("data.scrapers.government.brick_kiln_dashboard", "BrickKilnDashboardScraper"),
+    # --- Phase 4: Cross-border scrapers ---
+    "ctdc_dataset": ("data.scrapers.international.ctdc_dataset", "CTDCDatasetScraper"),
+    "brookings_bride": ("data.scrapers.international.brookings_bride", "BrookingsBrideScraper"),
+    # --- Phase 5: Urdu news scrapers ---
+    "jang_urdu": ("data.scrapers.news.jang_urdu", "JangUrduScraper"),
+    "express_urdu": ("data.scrapers.news.express_urdu", "ExpressUrduScraper"),
+    "bbc_urdu": ("data.scrapers.news.bbc_urdu", "BBCUrduScraper"),
+    "geo_urdu": ("data.scrapers.news.geo_urdu", "GeoUrduScraper"),
 }
 
 

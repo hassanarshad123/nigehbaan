@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMapStore } from '@/stores/mapStore';
 import type { MapLayerId } from '@/types';
 
@@ -130,8 +130,9 @@ const LAYER_TO_DATA: Partial<Record<MapLayerId, LayerDataKey>> = {
   routes: 'routes',
 };
 
-export function useMapData(): MapData {
+export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureCollection | null } {
   const activeLayers = useMapStore((s) => s.activeLayers);
+  const yearRange = useMapStore((s) => s.yearRange);
   const [data, setData] = useState<Record<LayerDataKey, GeoJSONFeatureCollection | null>>({
     boundaries: null,
     incidents: null,
@@ -248,13 +249,25 @@ export function useMapData(): MapData {
     });
   }, [activeLayers]);
 
+  // Filter incidents by yearRange
+  const filteredIncidents = React.useMemo(() => {
+    if (!data.incidents) return null;
+    const filtered = data.incidents.features.filter((f) => {
+      const year = f.properties?.year as number | undefined;
+      if (year == null) return true;
+      return year >= yearRange[0] && year <= yearRange[1];
+    });
+    return { type: 'FeatureCollection' as const, features: filtered };
+  }, [data.incidents, yearRange]);
+
   return {
     ...data,
+    filteredIncidents,
     countryMask,
     loading,
     counts: {
       boundaries: data.boundaries?.features?.length ?? 0,
-      incidents: data.incidents?.features?.length ?? 0,
+      incidents: filteredIncidents?.features?.length ?? 0,
       kilns: data.kilns?.features?.length ?? 0,
       borders: data.borders?.features?.length ?? 0,
       vulnerability: data.vulnerability?.features?.length ?? 0,

@@ -99,12 +99,23 @@ def process_article_ai(self, article_id: int) -> dict:
                     "reason": "keyword_pre_filter",
                 }
 
-            # 3. AI extraction via OpenAI
-            extraction = await extractor.extract_structured(
-                title=title,
-                text=text,
-                source_url=article.url,
-            )
+            # 3. AI extraction via OpenAI (detect Urdu sources)
+            URDU_SOURCES = {"jang_urdu", "express_urdu", "bbc_urdu", "geo_urdu"}
+            is_urdu = article.source_name in URDU_SOURCES
+
+            if is_urdu:
+                logger.info("Urdu extraction for article %d (source: %s)", article_id, article.source_name)
+                extraction = await extractor.extract_from_urdu(
+                    title=title,
+                    text=text,
+                    source_url=article.url,
+                )
+            else:
+                extraction = await extractor.extract_structured(
+                    title=title,
+                    text=text,
+                    source_url=article.url,
+                )
 
             # 4. Update article JSONB columns
             article.is_trafficking_relevant = extraction.is_relevant
@@ -135,8 +146,28 @@ def process_article_ai(self, article_id: int) -> dict:
 
             article.extracted_entities = extraction.raw_extraction
 
-            # 5. Create Incident if relevant
+            # 5. Create Incident if relevant (with duplicate check)
             if extraction.is_relevant and extraction.incident_type:
+                # Check for existing incident from same article
+                from sqlalchemy import select as sa_select
+                existing = await session.execute(
+                    sa_select(Incident.id).where(
+                        Incident.source_type == "news",
+                        Incident.source_id == str(article.id),
+                    )
+                )
+                if existing.scalar_one_or_none() is not None:
+                    logger.info("Incident already exists for article %d, skipping creation", article_id)
+                    await session.commit()
+                    return {
+                        "status": "completed",
+                        "article_id": article_id,
+                        "is_relevant": extraction.is_relevant,
+                        "incident_type": extraction.incident_type,
+                        "confidence": extraction.confidence,
+                        "note": "incident_already_exists",
+                    }
+
                 # Parse incident date
                 incident_date = None
                 if extraction.incident_date:
@@ -468,6 +499,127 @@ def run_nlp_pipeline(self, article_id: int) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Court judgment processing
+# ---------------------------------------------------------------------------
+
+@celery_app.task(
+    name="app.tasks.processing_tasks.process_court_judgment",
+    bind=True,
+    max_retries=3,
+    autoretry_for=(Exception,),
+    retry_backoff=30,
+)
+def process_court_judgment(self, judgment_id: int) -> dict:
+    """Create an Incident record from a court judgment.
+
+    When a court judgment is imported, create a corresponding Incident
+    with source_type='court', geocode it, and enqueue risk score recalculation.
+    Follows the pattern of process_article_ai.
+
+    Args:
+        judgment_id: Primary key of the court_judgments row.
+    """
+    logger.info("Processing court judgment %d", judgment_id)
+
+    async def _run():
+        from app.database import async_session_factory
+        from app.models.court_judgments import CourtJudgment
+        from app.models.incidents import Incident
+        from app.services.geocoder import PakistanGeocoder
+        from sqlalchemy import select
+
+        async with async_session_factory() as session:
+            result = await session.execute(
+                select(CourtJudgment).where(CourtJudgment.id == judgment_id)
+            )
+            judgment = result.scalar_one_or_none()
+            if judgment is None:
+                return {"status": "not_found", "judgment_id": judgment_id}
+
+            # Check for existing incident from same judgment
+            existing = await session.execute(
+                select(Incident.id).where(
+                    Incident.source_type == "court",
+                    Incident.source_id == str(judgment.id),
+                )
+            )
+            if existing.scalar_one_or_none() is not None:
+                return {"status": "already_exists", "judgment_id": judgment_id}
+
+            # Determine incident type from PPC sections
+            incident_type = _classify_court_incident(judgment.ppc_sections)
+
+            # Geocode using court name for location
+            geometry = None
+            district_pcode = judgment.incident_district_pcode
+            location_detail = judgment.court_name
+
+            if location_detail and not district_pcode:
+                geocoder = PakistanGeocoder(
+                    gazetteer_path="data/config/gazetteer/pakistan_districts.json"
+                )
+                geo_result = await geocoder.geocode(location_detail)
+                if geo_result:
+                    lat, lon, confidence = geo_result
+                    from geoalchemy2.elements import WKTElement
+                    geometry = WKTElement(f"POINT({lon} {lat})", srid=4326)
+                    district_pcode = geocoder.match_district(location_detail)
+
+            incident = Incident(
+                source_type="court",
+                source_id=str(judgment.id),
+                source_url=judgment.source_url,
+                incident_date=judgment.judgment_date,
+                report_date=judgment.judgment_date,
+                year=judgment.judgment_date.year if judgment.judgment_date else None,
+                month=judgment.judgment_date.month if judgment.judgment_date else None,
+                district_pcode=district_pcode,
+                location_detail=location_detail,
+                geometry=geometry,
+                incident_type=incident_type,
+                victim_count=1,
+                extraction_confidence=judgment.nlp_confidence or 0.6,
+                raw_text=(judgment.judgment_text or "")[:5000],
+            )
+
+            if judgment.verdict == "convicted":
+                incident.case_status = "convicted"
+                incident.conviction = True
+            elif judgment.verdict == "acquitted":
+                incident.case_status = "acquitted"
+                incident.conviction = False
+
+            session.add(incident)
+            await session.commit()
+
+            return {
+                "status": "completed",
+                "judgment_id": judgment_id,
+                "incident_type": incident_type,
+            }
+
+    return _run_async(_run())
+
+
+def _classify_court_incident(ppc_sections: list[str] | None) -> str:
+    """Classify incident type based on PPC sections."""
+    if not ppc_sections:
+        return "trafficking"
+
+    sections = set(s.replace("-", "").upper() for s in ppc_sections)
+
+    if any(s in sections for s in ("364A", "364", "365")):
+        return "kidnapping"
+    if any(s in sections for s in ("370", "371", "371A", "371B")):
+        return "trafficking"
+    if any(s in sections for s in ("377",)):
+        return "sexual_abuse"
+    if any(s in sections for s in ("374",)):
+        return "forced_labor"
+    return "trafficking"
+
+
+# ---------------------------------------------------------------------------
 # Vulnerability indicators
 # ---------------------------------------------------------------------------
 
@@ -486,6 +638,7 @@ def update_vulnerability_indicators(self) -> dict:
         from app.database import async_session_factory
         from app.models.vulnerability import VulnerabilityIndicator
         from app.models.incidents import Incident
+        from app.models.statistical_reports import StatisticalReport
         from sqlalchemy import select, func
 
         districts_updated = 0
@@ -502,13 +655,75 @@ def update_vulnerability_indicators(self) -> dict:
             )
             incident_counts = {row[0]: row[1] for row in result.all()}
 
-            # Update vulnerability indicators with incident rates
+            # Fetch national-level stats from statistical_reports to enrich indicators
+            stat_overrides: dict[str, float] = {}
+            stat_queries = [
+                ("worldbank_api", "poverty_headcount_ratio", "SI.POV.NAHC"),
+                ("worldbank_api", "out_of_school_rate", "SE.PRM.UNER.ZS"),
+                ("ilostat_api", "child_labor_rate", None),
+                ("unhcr_api", "refugee_population_total", None),
+            ]
+            for source_name, key, indicator_filter in stat_queries:
+                stmt = (
+                    select(StatisticalReport.value)
+                    .where(StatisticalReport.source_name == source_name)
+                    .order_by(StatisticalReport.report_year.desc())
+                    .limit(1)
+                )
+                if indicator_filter:
+                    stmt = stmt.where(StatisticalReport.indicator == indicator_filter)
+                stat_result = await session.execute(stmt)
+                val = stat_result.scalar_one_or_none()
+                if val is not None:
+                    stat_overrides[key] = val
+
+            # Update vulnerability indicators with incident-based risk
             vi_result = await session.execute(
                 select(VulnerabilityIndicator)
             )
             for vi in vi_result.scalars().all():
                 count = incident_counts.get(vi.district_pcode, 0)
-                # Store as incidents per district (rate calculation needs population)
+                # Compute incident rate per 100k (use population_under_18 if available)
+                population = vi.population_under_18 or 100_000
+                incident_rate = (count / population) * 100_000 if population > 0 else 0.0
+
+                # Apply national-level overrides where district-level data is missing
+                poverty = vi.poverty_headcount_ratio
+                if poverty is None and "poverty_headcount_ratio" in stat_overrides:
+                    poverty = stat_overrides["poverty_headcount_ratio"]
+
+                dropout = vi.school_dropout_rate
+                if dropout is None and "out_of_school_rate" in stat_overrides:
+                    dropout = stat_overrides["out_of_school_rate"]
+
+                child_labor = vi.child_labor_rate
+                if child_labor is None and "child_labor_rate" in stat_overrides:
+                    child_labor = stat_overrides["child_labor_rate"]
+
+                refugee_pop = vi.refugee_population
+                if refugee_pop is None and "refugee_population_total" in stat_overrides:
+                    # Distribute national refugee total proportionally
+                    refugee_pop = stat_overrides["refugee_population_total"] / 160.0
+
+                # Recalculate risk score incorporating incident rate
+                from app.services.risk_scorer import RiskScorer
+                scorer = RiskScorer()
+                indicators = {
+                    "incident_rate_per_100k": incident_rate,
+                    "poverty_headcount_ratio": poverty,
+                    "out_of_school_rate": dropout,
+                    "brick_kiln_density": vi.brick_kiln_density_per_sqkm,
+                    "child_labor_rate": child_labor,
+                    "child_marriage_rate": vi.child_marriage_rate,
+                    "refugee_population_ratio": refugee_pop,
+                    "flood_affected_pct": vi.flood_affected_pct,
+                }
+                score = await scorer.calculate_score(vi.district_pcode, indicators)
+                vi.trafficking_risk_score = score
+                logger.info(
+                    "District %s: %d incidents, rate=%.2f/100k, risk_score=%.2f",
+                    vi.district_pcode, count, incident_rate, score,
+                )
                 districts_updated += 1
 
             await session.commit()

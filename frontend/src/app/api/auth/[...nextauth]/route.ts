@@ -1,6 +1,9 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'admin@nigehbaan.org';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'changeme';
+
 const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -10,10 +13,9 @@ const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // Placeholder — in production, validate against the backend API
         if (
-          credentials?.email === 'admin@nigehbaan.org' &&
-          credentials?.password === 'changeme'
+          credentials?.email === ADMIN_EMAIL &&
+          credentials?.password === ADMIN_PASSWORD
         ) {
           return {
             id: '1',

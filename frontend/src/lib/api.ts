@@ -132,6 +132,8 @@ export interface DistrictProfileResponse {
   vulnerability: number | null;
   convictionRate: number | null;
   recentReports: number;
+  centroidLat: number | null;
+  centroidLon: number | null;
 }
 
 export function fetchDistrictProfile(pcode: string): Promise<DistrictProfileResponse> {
@@ -253,6 +255,29 @@ export function fetchScrapers(): Promise<ScraperStatusResponse[]> {
 
 export function fetchScrapersSummary(): Promise<ScrapersSummaryResponse> {
   return apiFetch('/scrapers/summary');
+}
+
+// ── Admin / Reports ────────────────────────────────────────────
+
+export interface PendingReportItem {
+  id: number;
+  reportType: string;
+  status: string;
+  districtPcode: string | null;
+  createdAt: string;
+}
+
+export function fetchPendingReports(params?: {
+  status?: string;
+  page?: number;
+  limit?: number;
+}): Promise<PendingReportItem[]> {
+  const search = new URLSearchParams();
+  if (params?.status) search.set('status', params.status);
+  if (params?.page) search.set('page', String(params.page));
+  if (params?.limit) search.set('limit', String(params.limit));
+  const qs = search.toString();
+  return apiFetch(`/reports/${qs ? `?${qs}` : ''}`);
 }
 
 // ── Public Reports ─────────────────────────────────────────────

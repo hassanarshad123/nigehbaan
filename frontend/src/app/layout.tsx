@@ -3,6 +3,7 @@ import { Inter, Noto_Nastaliq_Urdu } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { QueryProvider } from '@/app/providers';
+import { IntlProvider } from '@/components/layout/IntlProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -47,7 +48,9 @@ export default function RootLayout({
     <html lang="en" className={`dark ${inter.variable} ${nastaliq.variable}`}>
       <body className="font-sans bg-[#0F172A] text-[#F8FAFC] antialiased">
         <QueryProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <IntlProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </IntlProvider>
         </QueryProvider>
       </body>
     </html>

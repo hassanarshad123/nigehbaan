@@ -115,8 +115,8 @@ export default function DistrictPage({ params }: DistrictPageProps) {
               District Map
             </h2>
             <DistrictMap
-              latitude={0}
-              longitude={0}
+              latitude={district.centroidLat ?? 30.3753}
+              longitude={district.centroidLon ?? 69.3451}
             />
           </div>
 

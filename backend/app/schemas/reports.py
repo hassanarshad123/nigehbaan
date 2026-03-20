@@ -41,6 +41,18 @@ class ReportCreate(BaseModel):
         return self
 
 
+class ReportListItem(BaseModel):
+    """Summary of a public report for the admin listing."""
+
+    model_config = {"frozen": True, "populate_by_name": True}
+
+    id: int
+    report_type: str = Field(..., alias="reportType")
+    status: str
+    district_pcode: str | None = Field(default=None, alias="districtPcode")
+    created_at: datetime = Field(..., alias="createdAt")
+
+
 class ReportResponse(BaseModel):
     """Response after successfully creating a public report."""
 

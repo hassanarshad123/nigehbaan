@@ -1,14 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CheckCircle2, Phone, ArrowLeft } from 'lucide-react';
 
-export default function ReportSuccessPage() {
-  // In production this would come from the API response / URL params
-  const referenceNumber = `NGH-${Date.now().toString(36).toUpperCase()}`;
+function ReportSuccessContent() {
+  const searchParams = useSearchParams();
+  const referenceNumber = searchParams.get('ref') ?? `NGH-${Date.now().toString(36).toUpperCase()}`;
 
   return (
     <div className="min-h-screen bg-[#0F172A]">
@@ -87,5 +88,13 @@ export default function ReportSuccessPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function ReportSuccessPage() {
+  return (
+    <Suspense>
+      <ReportSuccessContent />
+    </Suspense>
   );
 }

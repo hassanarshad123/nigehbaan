@@ -31,6 +31,8 @@ class DistrictProfile(BaseModel):
     vulnerability: float | None = None
     conviction_rate: float | None = Field(default=None, alias="convictionRate")
     recent_reports: int = Field(default=0, alias="recentReports")
+    centroid_lat: float | None = Field(default=None, alias="centroidLat")
+    centroid_lon: float | None = Field(default=None, alias="centroidLon")
 
 
 class DistrictVulnerability(BaseModel):

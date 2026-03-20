@@ -134,7 +134,7 @@ export function MapContainer() {
   const setViewport = useMapStore((s) => s.setViewport);
   const activeLayers = useMapStore((s) => s.activeLayers);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const { boundaries, incidents, kilns, borders, vulnerability, routes, countryMask } = useMapData();
+  const { boundaries, filteredIncidents, kilns, borders, vulnerability, routes, countryMask } = useMapData();
 
   const handleMove = useCallback(
     (evt: ViewStateChangeEvent) => {
@@ -211,8 +211,8 @@ export function MapContainer() {
         )}
 
         {/* Incidents */}
-        {incidents && (
-          <Source id="incidents" type="geojson" data={incidents}>
+        {filteredIncidents && (
+          <Source id="incidents" type="geojson" data={filteredIncidents}>
             <Layer
               {...incidentLayer}
               layout={{ visibility: vis('incidents') }}

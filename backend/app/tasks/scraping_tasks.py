@@ -32,6 +32,188 @@ def _run_async(coro):
         return asyncio.run(coro)
 
 
+async def _save_statistical_reports(records: list[dict[str, Any]], source_name: str) -> int:
+    """Upsert scraped records into statistical_reports and return count saved."""
+    from app.database import async_session_factory
+    from app.models.statistical_reports import StatisticalReport
+
+    saved = 0
+    async with async_session_factory() as session:
+        for record in records:
+            try:
+                stmt = pg_insert(StatisticalReport).values(
+                    source_name=source_name,
+                    report_year=record.get("report_year"),
+                    report_title=record.get("report_title"),
+                    indicator=record.get("indicator"),
+                    value=record.get("value"),
+                    unit=record.get("unit"),
+                    geographic_scope=record.get("geographic_scope"),
+                    district_pcode=record.get("district_pcode"),
+                    victim_gender=record.get("victim_gender"),
+                    victim_age_bracket=record.get("victim_age_bracket"),
+                    pdf_url=record.get("pdf_url"),
+                    local_pdf_path=record.get("local_pdf_path"),
+                    extraction_method=record.get("extraction_method"),
+                    extraction_confidence=record.get("extraction_confidence"),
+                    raw_table_data=record.get("raw_table_data"),
+                ).on_conflict_do_update(
+                    constraint="uq_stat_report_source_year_indicator_geo",
+                    set_={
+                        "value": record.get("value"),
+                        "unit": record.get("unit"),
+                        "pdf_url": record.get("pdf_url"),
+                        "extraction_method": record.get("extraction_method"),
+                        "extraction_confidence": record.get("extraction_confidence"),
+                        "raw_table_data": record.get("raw_table_data"),
+                    },
+                )
+                await session.execute(stmt)
+                saved += 1
+            except Exception as exc:
+                logger.warning("Failed to save statistical report: %s", exc)
+
+        await session.commit()
+
+    return saved
+
+
+async def _save_transparency_reports(records: list[dict[str, Any]], source_name: str) -> int:
+    """Upsert scraped records into transparency_reports and return count saved."""
+    from app.database import async_session_factory
+    from app.models.transparency_reports import TransparencyReport
+
+    saved = 0
+    async with async_session_factory() as session:
+        for record in records:
+            try:
+                stmt = pg_insert(TransparencyReport).values(
+                    platform=record.get("platform", source_name),
+                    report_period=record.get("report_period"),
+                    country=record.get("country", "Pakistan"),
+                    metric=record.get("metric"),
+                    value=record.get("value"),
+                    unit=record.get("unit"),
+                    source_url=record.get("source_url"),
+                ).on_conflict_do_update(
+                    constraint="uq_transparency_platform_period_country_metric",
+                    set_={
+                        "value": record.get("value"),
+                        "unit": record.get("unit"),
+                        "source_url": record.get("source_url"),
+                    },
+                )
+                await session.execute(stmt)
+                saved += 1
+            except Exception as exc:
+                logger.warning("Failed to save transparency report: %s", exc)
+
+        await session.commit()
+
+    return saved
+
+
+async def _save_tip_reports(records: list[dict[str, Any]]) -> int:
+    """Upsert scraped TIP report records into tip_report_annual and return count saved."""
+    from app.database import async_session_factory
+    from app.models.tip_report import TipReportAnnual
+
+    saved = 0
+    async with async_session_factory() as session:
+        for record in records:
+            year = record.get("year")
+            if not year:
+                continue
+            try:
+                stmt = pg_insert(TipReportAnnual).values(
+                    year=year,
+                    tier_ranking=record.get("tier_ranking"),
+                    ptpa_investigations=record.get("ptpa_investigations"),
+                    ptpa_prosecutions=record.get("ptpa_prosecutions"),
+                    ptpa_convictions=record.get("ptpa_convictions"),
+                    ptpa_sex_trafficking_inv=record.get("ptpa_sex_trafficking_inv"),
+                    ptpa_forced_labor_inv=record.get("ptpa_forced_labor_inv"),
+                    ppc_investigations=record.get("ppc_investigations"),
+                    ppc_prosecutions=record.get("ppc_prosecutions"),
+                    ppc_convictions=record.get("ppc_convictions"),
+                    victims_identified=record.get("victims_identified"),
+                    victims_referred=record.get("victims_referred"),
+                    budget_allocated_pkr=record.get("budget_allocated_pkr"),
+                    key_findings=record.get("key_findings"),
+                    recommendations=record.get("recommendations"),
+                    named_hotspots=record.get("named_hotspots"),
+                    source_url=record.get("source_url"),
+                ).on_conflict_do_update(
+                    index_elements=["year"],
+                    set_={
+                        "tier_ranking": record.get("tier_ranking"),
+                        "ptpa_investigations": record.get("ptpa_investigations"),
+                        "ptpa_prosecutions": record.get("ptpa_prosecutions"),
+                        "ptpa_convictions": record.get("ptpa_convictions"),
+                        "victims_identified": record.get("victims_identified"),
+                        "victims_referred": record.get("victims_referred"),
+                        "key_findings": record.get("key_findings"),
+                        "recommendations": record.get("recommendations"),
+                        "source_url": record.get("source_url"),
+                    },
+                )
+                await session.execute(stmt)
+                saved += 1
+            except Exception as exc:
+                logger.warning("Failed to save TIP report record: %s", exc)
+
+        await session.commit()
+
+    return saved
+
+
+async def _save_court_judgments(records: list[dict[str, Any]], source_name: str) -> int:
+    """Upsert scraped court judgments using source_url as dedup key."""
+    from app.database import async_session_factory
+    from app.models.court_judgments import CourtJudgment
+
+    saved = 0
+    async with async_session_factory() as session:
+        for record in records:
+            source_url = record.get("source_url")
+            if not source_url:
+                continue
+            try:
+                stmt = pg_insert(CourtJudgment).values(
+                    court_name=record.get("court_name"),
+                    court_bench=record.get("court_bench"),
+                    case_number=record.get("case_number"),
+                    judgment_date=record.get("judgment_date"),
+                    judge_names=record.get("judge_names"),
+                    appellant=record.get("appellant"),
+                    respondent=record.get("respondent"),
+                    ppc_sections=record.get("ppc_sections"),
+                    statutes=record.get("statutes"),
+                    is_trafficking_related=record.get("is_trafficking_related"),
+                    trafficking_type=record.get("trafficking_type"),
+                    incident_district_pcode=record.get("incident_district_pcode"),
+                    court_district_pcode=record.get("court_district_pcode"),
+                    verdict=record.get("verdict"),
+                    sentence=record.get("sentence"),
+                    sentence_years=record.get("sentence_years"),
+                    judgment_text=record.get("judgment_text"),
+                    pdf_url=record.get("pdf_url"),
+                    source_url=source_url,
+                    nlp_confidence=record.get("nlp_confidence"),
+                ).on_conflict_do_nothing(
+                    constraint="uq_court_judgment_source_url",
+                )
+                result = await session.execute(stmt)
+                if result.rowcount > 0:
+                    saved += 1
+            except Exception as exc:
+                logger.warning("Failed to save court judgment: %s", exc)
+
+        await session.commit()
+
+    return saved
+
+
 async def _save_news_articles(records: list[dict[str, Any]], source_name: str) -> list[int]:
     """Upsert scraped articles into news_articles and return their IDs."""
     from app.database import async_session_factory
@@ -381,8 +563,11 @@ def scrape_tip_report(self) -> dict:
         records = await _run_scraper(
             "data.scrapers.international.tip_report", "TIPReportScraper"
         )
-        await _update_data_source("tip_report", len(records))
-        return {"status": "completed", "records": len(records)}
+        saved = 0
+        if records:
+            saved = await _save_tip_reports(records)
+        await _update_data_source("tip_report", saved)
+        return {"status": "completed", "records": len(records), "saved": saved}
 
     return _run_async(_run())
 
@@ -444,11 +629,15 @@ def scrape_courts(self, court_name: str) -> dict:
 
     async def _run():
         records = await _run_scraper(module_path, class_name)
-        await _update_data_source(f"court_{court_name}", len(records))
+        saved = 0
+        if records:
+            saved = await _save_court_judgments(records, f"court_{court_name}")
+        await _update_data_source(f"court_{court_name}", saved)
         return {
             "status": "completed",
             "court": court_name,
             "judgments_found": len(records),
+            "saved": saved,
         }
 
     return _run_async(_run())
@@ -487,11 +676,27 @@ def scrape_police_data(self, province: str) -> dict:
 
     async def _run():
         records = await _run_scraper(module_path, class_name)
-        await _update_data_source(f"police_{province}", len(records))
+        saved = 0
+        if records:
+            transformed = [
+                {
+                    "report_year": r.get("report_year") or r.get("year"),
+                    "indicator": r.get("crime_category") or r.get("indicator"),
+                    "value": r.get("count") or r.get("value"),
+                    "unit": r.get("unit", "cases"),
+                    "geographic_scope": r.get("geographic_scope", province.title()),
+                    "district_pcode": r.get("district_pcode"),
+                    "extraction_method": "scraper",
+                }
+                for r in records
+            ]
+            saved = await _save_statistical_reports(transformed, f"police_{province}")
+        await _update_data_source(f"police_{province}", saved)
         return {
             "status": "completed",
             "province": province,
             "records_found": len(records),
+            "saved": saved,
         }
 
     return _run_async(_run())
@@ -516,8 +721,22 @@ def scrape_stateofchildren(self) -> dict:
         records = await _run_scraper(
             "data.scrapers.government.stateofchildren", "StateOfChildrenScraper"
         )
-        await _update_data_source("stateofchildren", len(records))
-        return {"status": "completed", "indicators_updated": len(records)}
+        saved = 0
+        if records:
+            transformed = [
+                {
+                    "report_year": r.get("report_year") or r.get("year"),
+                    "indicator": r.get("indicator"),
+                    "value": r.get("value"),
+                    "unit": r.get("unit"),
+                    "geographic_scope": r.get("geographic_scope", "Pakistan"),
+                    "extraction_method": r.get("extraction_method", "scraper"),
+                }
+                for r in records
+            ]
+            saved = await _save_statistical_reports(transformed, "stateofchildren")
+        await _update_data_source("stateofchildren", saved)
+        return {"status": "completed", "indicators_updated": len(records), "saved": saved}
 
     return _run_async(_run())
 
@@ -537,8 +756,22 @@ def scrape_worldbank_api(self) -> dict:
         records = await _run_scraper(
             "data.scrapers.international.worldbank_api", "WorldBankAPIScraper"
         )
-        await _update_data_source("worldbank_api", len(records))
-        return {"status": "completed", "indicators_updated": len(records)}
+        saved = 0
+        if records:
+            transformed = [
+                {
+                    "report_year": r.get("report_year") or r.get("year"),
+                    "indicator": r.get("indicator"),
+                    "value": r.get("value"),
+                    "unit": r.get("unit"),
+                    "geographic_scope": r.get("geographic_scope", "Pakistan"),
+                    "extraction_method": "api",
+                }
+                for r in records
+            ]
+            saved = await _save_statistical_reports(transformed, "worldbank_api")
+        await _update_data_source("worldbank_api", saved)
+        return {"status": "completed", "indicators_updated": len(records), "saved": saved}
 
     return _run_async(_run())
 
@@ -558,7 +791,265 @@ def scrape_unhcr_api(self) -> dict:
         records = await _run_scraper(
             "data.scrapers.international.unhcr_api", "UNHCRAPIScraper"
         )
-        await _update_data_source("unhcr_api", len(records))
-        return {"status": "completed", "records_updated": len(records)}
+        saved = 0
+        if records:
+            transformed = [
+                {
+                    "report_year": r.get("report_year") or r.get("year"),
+                    "indicator": r.get("population_type") or r.get("indicator"),
+                    "value": r.get("count") or r.get("value"),
+                    "unit": r.get("unit", "persons"),
+                    "geographic_scope": r.get("geographic_scope", "Pakistan"),
+                    "extraction_method": "api",
+                }
+                for r in records
+            ]
+            saved = await _save_statistical_reports(transformed, "unhcr_api")
+        await _update_data_source("unhcr_api", saved)
+        return {"status": "completed", "records_updated": len(records), "saved": saved}
 
     return _run_async(_run())
+
+
+# ---------------------------------------------------------------------------
+# Helper: generic statistical report task
+# ---------------------------------------------------------------------------
+
+def _make_stat_task(module_path: str, class_name: str, source_name: str):
+    """Run a scraper and save to statistical_reports."""
+    async def _run():
+        records = await _run_scraper(module_path, class_name)
+        saved = 0
+        if records:
+            saved = await _save_statistical_reports(records, source_name)
+        await _update_data_source(source_name, saved)
+        return {"status": "completed", "records_saved": saved}
+    return _run_async(_run())
+
+
+def _make_transparency_task(module_path: str, class_name: str, source_name: str):
+    """Run a scraper and save to transparency_reports."""
+    async def _run():
+        records = await _run_scraper(module_path, class_name)
+        saved = 0
+        if records:
+            saved = await _save_transparency_reports(records, source_name)
+        await _update_data_source(source_name, saved)
+        return {"status": "completed", "records_saved": saved}
+    return _run_async(_run())
+
+
+def _make_news_task(module_path: str, class_name: str, source_name: str):
+    """Run a scraper and save to news_articles."""
+    async def _run():
+        records = await _run_scraper(module_path, class_name)
+        if records:
+            article_ids = await _save_news_articles(records, source_name)
+            await _update_data_source(source_name, len(records))
+            _enqueue_ai_processing(article_ids)
+            return {"status": "completed", "articles_found": len(records), "saved": len(article_ids)}
+        await _update_data_source(source_name, 0)
+        return {"status": "completed", "articles_found": 0}
+    return _run_async(_run())
+
+
+# ---------------------------------------------------------------------------
+# Phase 1: CSA scrapers
+# ---------------------------------------------------------------------------
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_sahil", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_sahil(self) -> dict:
+    """Scrape Sahil Cruel Numbers annual reports."""
+    logger.info("Scraping Sahil reports")
+    return _make_stat_task("data.scrapers.government.sahil", "SahilScraper", "sahil")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_ecpat", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_ecpat(self) -> dict:
+    """Scrape ECPAT country assessment for Pakistan."""
+    logger.info("Scraping ECPAT")
+    return _make_stat_task("data.scrapers.international.ecpat", "ECPATScraper", "ecpat")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_pahchaan", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_pahchaan(self) -> dict:
+    """Scrape Pahchaan hospital-based child protection data."""
+    logger.info("Scraping Pahchaan")
+    return _make_stat_task("data.scrapers.government.pahchaan", "PahchaanScraper", "pahchaan")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_unicef_pakistan", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_unicef_pakistan(self) -> dict:
+    """Scrape UNICEF Pakistan child protection data."""
+    logger.info("Scraping UNICEF Pakistan")
+    return _make_stat_task("data.scrapers.international.unicef_pakistan", "UNICEFPakistanScraper", "unicef_pakistan")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_ncrc", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_ncrc(self) -> dict:
+    """Scrape NCRC State of Children Report."""
+    logger.info("Scraping NCRC")
+    return _make_stat_task("data.scrapers.government.ncrc", "NCRCScraper", "ncrc")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_cpwb_punjab", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_cpwb_punjab(self) -> dict:
+    """Scrape CPWB Punjab helpline 1121 statistics."""
+    logger.info("Scraping CPWB Punjab")
+    return _make_stat_task("data.scrapers.government.cpwb_punjab", "CPWBPunjabScraper", "cpwb_punjab")
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: Online Exploitation scrapers
+# ---------------------------------------------------------------------------
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_ncmec", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_ncmec(self) -> dict:
+    """Scrape NCMEC missing children reports."""
+    logger.info("Scraping NCMEC")
+    return _make_stat_task("data.scrapers.international.ncmec", "NCMECScraper", "ncmec")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_iwf_reports", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_iwf_reports(self) -> dict:
+    """Scrape IWF annual reports."""
+    logger.info("Scraping IWF")
+    return _make_stat_task("data.scrapers.international.iwf_reports", "IWFReportsScraper", "iwf_reports")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_meta_transparency", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_meta_transparency(self) -> dict:
+    """Scrape Meta transparency report data."""
+    logger.info("Scraping Meta Transparency")
+    return _make_transparency_task("data.scrapers.international.meta_transparency", "MetaTransparencyScraper", "meta_transparency")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_google_transparency", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_google_transparency(self) -> dict:
+    """Scrape Google transparency report data."""
+    logger.info("Scraping Google Transparency")
+    return _make_transparency_task("data.scrapers.international.google_transparency", "GoogleTransparencyScraper", "google_transparency")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_drf_newsletters", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_drf_newsletters(self) -> dict:
+    """Scrape Digital Rights Foundation helpline stats."""
+    logger.info("Scraping DRF newsletters")
+    return _make_stat_task("data.scrapers.government.drf_newsletters", "DRFNewslettersScraper", "drf_newsletters")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_weprotect_gta", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_weprotect_gta(self) -> dict:
+    """Scrape WeProtect Global Threat Assessment."""
+    logger.info("Scraping WeProtect GTA")
+    return _make_stat_task("data.scrapers.international.weprotect_gta", "WeProtectGTAScraper", "weprotect_gta")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_bytes_for_all", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_bytes_for_all(self) -> dict:
+    """Scrape Bytes for All publications."""
+    logger.info("Scraping Bytes for All")
+    return _make_stat_task("data.scrapers.government.bytes_for_all", "BytesForAllScraper", "bytes_for_all")
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: Child Labor scrapers
+# ---------------------------------------------------------------------------
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_ilostat_api", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_ilostat_api(self) -> dict:
+    """Scrape ILOSTAT child labor indicators."""
+    logger.info("Scraping ILOSTAT API")
+    return _make_stat_task("data.scrapers.international.ilostat_api", "ILOSTATAPIScraper", "ilostat_api")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_dol_annual_report", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_dol_annual_report(self) -> dict:
+    """Scrape US DOL annual child labor report for Pakistan."""
+    logger.info("Scraping DOL Annual Report")
+    return _make_stat_task("data.scrapers.international.dol_annual_report", "DOLAnnualReportScraper", "dol_annual_report")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_dol_tvpra", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_dol_tvpra(self) -> dict:
+    """Scrape DOL TVPRA list of goods produced by child/forced labor."""
+    logger.info("Scraping DOL TVPRA")
+    return _make_stat_task("data.scrapers.international.dol_tvpra", "DOLTVPRAScraper", "dol_tvpra")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_labour_surveys", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_labour_surveys(self) -> dict:
+    """Scrape provincial child labour survey data."""
+    logger.info("Scraping Labour Surveys")
+    return _make_stat_task("data.scrapers.government.labour_surveys", "LabourSurveysScraper", "labour_surveys")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_zenodo_kilns", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_zenodo_kilns(self) -> dict:
+    """Download Zenodo brick kiln dataset."""
+    logger.info("Scraping Zenodo Kilns")
+    return _make_stat_task("data.scrapers.international.zenodo_kilns_scraper", "ZenodoKilnsScraper", "zenodo_kilns")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_bllf", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_bllf(self) -> dict:
+    """Scrape BLLF bonded labour freed statistics."""
+    logger.info("Scraping BLLF")
+    return _make_stat_task("data.scrapers.government.bllf", "BLLFScraper", "bllf")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_brick_kiln_dashboard", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_brick_kiln_dashboard(self) -> dict:
+    """Scrape Urban Unit brick kiln dashboard."""
+    logger.info("Scraping Brick Kiln Dashboard")
+    return _make_stat_task("data.scrapers.government.brick_kiln_dashboard", "BrickKilnDashboardScraper", "brick_kiln_dashboard")
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: Cross-border scrapers
+# ---------------------------------------------------------------------------
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_ctdc_dataset", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_ctdc_dataset(self) -> dict:
+    """Scrape CTDC trafficking victim dataset."""
+    logger.info("Scraping CTDC Dataset")
+    return _make_stat_task("data.scrapers.international.ctdc_dataset", "CTDCDatasetScraper", "ctdc_dataset")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_brookings_bride", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+def scrape_brookings_bride(self) -> dict:
+    """Scrape Brookings bride trafficking research."""
+    logger.info("Scraping Brookings Bride")
+    return _make_stat_task("data.scrapers.international.brookings_bride", "BrookingsBrideScraper", "brookings_bride")
+
+
+# ---------------------------------------------------------------------------
+# Phase 5: Urdu news scrapers
+# ---------------------------------------------------------------------------
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_news_jang_urdu", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=60)
+def scrape_news_jang_urdu(self) -> dict:
+    """Scrape Jang Urdu daily news."""
+    logger.info("Scraping Jang Urdu")
+    return _make_news_task("data.scrapers.news.jang_urdu", "JangUrduScraper", "jang_urdu")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_news_express_urdu", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=60)
+def scrape_news_express_urdu(self) -> dict:
+    """Scrape Express Urdu daily news."""
+    logger.info("Scraping Express Urdu")
+    return _make_news_task("data.scrapers.news.express_urdu", "ExpressUrduScraper", "express_urdu")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_news_bbc_urdu", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=60)
+def scrape_news_bbc_urdu(self) -> dict:
+    """Scrape BBC Urdu news."""
+    logger.info("Scraping BBC Urdu")
+    return _make_news_task("data.scrapers.news.bbc_urdu", "BBCUrduScraper", "bbc_urdu")
+
+
+@celery_app.task(name="app.tasks.scraping_tasks.scrape_news_geo_urdu", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=60)
+def scrape_news_geo_urdu(self) -> dict:
+    """Scrape Geo Urdu news."""
+    logger.info("Scraping Geo Urdu")
+    return _make_news_task("data.scrapers.news.geo_urdu", "GeoUrduScraper", "geo_urdu")

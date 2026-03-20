@@ -69,7 +69,10 @@ class RiskScorer:
             if raw is None:
                 continue
 
-            raw_float = float(raw)
+            try:
+                raw_float = float(raw)
+            except (ValueError, TypeError):
+                continue
 
             if range_lookup and indicator_name in range_lookup:
                 lo, hi = range_lookup[indicator_name]
