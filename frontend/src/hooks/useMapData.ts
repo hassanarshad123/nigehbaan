@@ -145,7 +145,7 @@ export function useMapData(): MapData {
   const fetchedRef = useRef<Set<LayerDataKey>>(new Set());
   const maskFetchedRef = useRef(false);
 
-  // Always fetch boundaries + country mask on mount
+  // Always fetch boundaries, country mask, and counter layers on mount
   useEffect(() => {
     // District boundaries (level=2)
     if (!fetchedRef.current.has('boundaries')) {
@@ -177,6 +177,25 @@ export function useMapData(): MapData {
           }
         })
         .catch((err) => console.error('Failed to fetch country boundary for mask:', err));
+    }
+
+    // Eager-fetch counter layers (incidents, kilns, borders) so LiveCounter
+    // shows real counts without requiring the user to activate each layer.
+    const counterLayers: LayerDataKey[] = ['incidents', 'kilns', 'borders'];
+    for (const key of counterLayers) {
+      if (fetchedRef.current.has(key)) continue;
+      fetchedRef.current.add(key);
+      fetch(`${API_BASE}${LAYER_ENDPOINTS[key]}`)
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+        .then((raw) => {
+          const geojson: GeoJSONFeatureCollection =
+            key === 'borders' ? bordersToGeoJSON(raw as BorderCrossingPoint[]) : raw;
+          setData((prev) => ({ ...prev, [key]: geojson?.features ? geojson : EMPTY_FC }));
+        })
+        .catch((err) => console.error(`Failed to fetch ${key}:`, err));
     }
   }, []);
 

@@ -49,7 +49,7 @@ export function TrendChart() {
   return (
     <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4">
       <h3 className="text-sm font-semibold text-[#F8FAFC] mb-4">Incident Trend</h3>
-      <div className="h-64">
+      <div className="h-48 sm:h-64">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-[#94A3B8]" />

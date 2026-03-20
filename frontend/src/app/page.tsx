@@ -3,11 +3,10 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
-import { LayerControls } from '@/components/map/LayerControls';
 import { LiveCounter } from '@/components/map/LiveCounter';
 import { SearchBar } from '@/components/map/SearchBar';
 import { IncidentTimeline } from '@/components/map/IncidentTimeline';
-import { MapLegend } from '@/components/map/MapLegend';
+import { MobileMapControls } from '@/components/map/MobileMapControls';
 
 const MapContainer = dynamic(
   () => import('@/components/map/MapContainer').then((mod) => mod.MapContainer),
@@ -24,23 +23,22 @@ export default function HomePage() {
       <Header />
 
       {/* Search bar — top center below header */}
-      <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40">
+      <div className="absolute top-16 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-40">
         <SearchBar />
       </div>
 
       {/* Layer controls — right side */}
-      <div className="absolute top-16 right-4 z-40 space-y-2">
-        <LayerControls />
-        <MapLegend />
+      <div className="absolute top-16 right-4 z-40 relative">
+        <MobileMapControls />
       </div>
 
       {/* Timeline — bottom center */}
-      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-40">
+      <div className="absolute bottom-16 left-2 right-2 sm:bottom-20 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-40">
         <IncidentTimeline />
       </div>
 
       {/* Live counter — bottom left */}
-      <div className="absolute bottom-4 left-4 z-40">
+      <div className="absolute bottom-2 left-2 right-2 sm:right-auto sm:left-4 sm:bottom-4 z-40">
         <LiveCounter />
       </div>
     </div>

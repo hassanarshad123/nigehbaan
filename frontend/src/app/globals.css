@@ -96,6 +96,10 @@
     text-wrap: balance;
   }
 
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .bg-glass {
     background: rgba(15, 23, 42, 0.85);
     backdrop-filter: blur(12px);

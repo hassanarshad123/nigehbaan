@@ -84,9 +84,9 @@ export function FilterControls() {
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:gap-4">
         {/* Province selector */}
-        <div className="min-w-[160px]">
+        <div>
           <label className="block text-xs text-[#94A3B8] mb-1">Province</label>
           <select
             value={selectedProvince ?? ''}
@@ -108,7 +108,7 @@ export function FilterControls() {
         </div>
 
         {/* Year range */}
-        <div className="min-w-[200px]">
+        <div>
           <label className="block text-xs text-[#94A3B8] mb-1">
             Year Range: {yearRange[0]} - {yearRange[1]}
           </label>
@@ -144,7 +144,7 @@ export function FilterControls() {
         </div>
 
         {/* Incident type multi-select grouped by category */}
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1">
           <label className="block text-xs text-[#94A3B8] mb-1">Incident Type</label>
           <div className="space-y-2">
             {INCIDENT_TYPE_GROUPS.map((group) => (

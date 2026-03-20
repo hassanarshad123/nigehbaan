@@ -27,7 +27,7 @@ export function DistrictPopup({
   const color = riskColor(riskScore);
 
   return (
-    <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4 shadow-2xl w-64 animate-fade-in">
+    <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4 shadow-2xl w-64 max-w-[calc(100vw-2rem)] animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>

@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import dashboard, districts, export, legal, map, reports, search
+from app.api.v1 import dashboard, districts, export, legal, map, reports, scrapers, search
 
 v1_router = APIRouter()
 
@@ -13,3 +13,4 @@ v1_router.include_router(reports.router, prefix="/reports", tags=["Public Report
 v1_router.include_router(legal.router, prefix="/legal", tags=["Legal / Courts"])
 v1_router.include_router(search.router, prefix="/search", tags=["Search"])
 v1_router.include_router(export.router, prefix="/export", tags=["Export"])
+v1_router.include_router(scrapers.router, prefix="/scrapers", tags=["Scrapers"])

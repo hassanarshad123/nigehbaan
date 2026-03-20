@@ -98,7 +98,7 @@ export default function AdminPage() {
               {PENDING_REPORTS.map((report) => (
                 <div
                   key={report.id}
-                  className="flex items-center justify-between rounded-md bg-[#0F172A] px-3 py-2.5"
+                  className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between rounded-md bg-[#0F172A] px-3 py-2.5"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-mono text-[#06B6D4]">{report.id}</span>
@@ -108,10 +108,10 @@ export default function AdminPage() {
                     <span className="text-xs text-[#94A3B8]">{report.district}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-[#94A3B8] tabular-nums">{report.date}</span>
+                    <span className="text-xs text-[#94A3B8] tabular-nums">{report.date}</span>
                     <span
                       className={cn(
-                        'rounded-full px-2 py-0.5 text-[10px] font-medium capitalize',
+                        'rounded-full px-2 py-0.5 text-xs font-medium capitalize',
                         REPORT_STATUS_STYLES[report.status],
                       )}
                     >
@@ -133,17 +133,17 @@ export default function AdminPage() {
               {DATA_SOURCES_HEALTH.map((source) => (
                 <div
                   key={source.name}
-                  className="flex items-center justify-between rounded-md bg-[#0F172A] px-3 py-2.5"
+                  className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between rounded-md bg-[#0F172A] px-3 py-2.5"
                 >
                   <div className="flex items-center gap-2">
                     {STATUS_ICON[source.status]}
                     <span className="text-xs text-[#F8FAFC]">{source.name}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] text-[#94A3B8] tabular-nums">
+                    <span className="text-xs text-[#94A3B8] tabular-nums">
                       {formatNumber(source.records)} records
                     </span>
-                    <span className="flex items-center gap-1 text-[10px] text-[#94A3B8]">
+                    <span className="flex items-center gap-1 text-xs text-[#94A3B8]">
                       <Clock className="h-3 w-3" />
                       {source.lastSync}
                     </span>

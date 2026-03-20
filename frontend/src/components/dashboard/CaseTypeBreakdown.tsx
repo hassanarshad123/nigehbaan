@@ -82,9 +82,9 @@ export function CaseTypeBreakdown() {
         Case Type Breakdown
       </h3>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-center gap-4 sm:flex-row">
         {/* Donut chart */}
-        <div className="h-52 w-52 shrink-0">
+        <div className="h-40 w-40 shrink-0 sm:h-52 sm:w-52">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

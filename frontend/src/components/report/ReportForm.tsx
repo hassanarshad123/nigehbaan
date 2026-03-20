@@ -105,7 +105,7 @@ export function ReportForm() {
               <div key={label} className="flex flex-col items-center gap-1">
                 <div
                   className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-default',
+                    'flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs font-semibold transition-default',
                     isActive && 'bg-[#06B6D4] text-[#0F172A]',
                     isDone && 'bg-[#10B981] text-[#0F172A]',
                     !isActive && !isDone && 'bg-[#334155] text-[#94A3B8]',
@@ -115,7 +115,7 @@ export function ReportForm() {
                 </div>
                 <span
                   className={cn(
-                    'text-[10px]',
+                    'text-[10px] hidden sm:block',
                     isActive ? 'text-[#F8FAFC]' : 'text-[#94A3B8]',
                   )}
                 >
@@ -125,6 +125,10 @@ export function ReportForm() {
             );
           })}
         </div>
+        {/* Mobile step label */}
+        <p className="sm:hidden text-center text-xs text-[#94A3B8] mt-2">
+          Step {step}: {STEPS[step - 1]}
+        </p>
         {/* Progress bar */}
         <div className="h-1 rounded-full bg-[#334155]">
           <div
@@ -135,7 +139,7 @@ export function ReportForm() {
       </div>
 
       {/* Step content */}
-      <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-6 mb-6">
+      <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4 sm:p-6 mb-6">
         {step === 1 && <StepCategory selected={data.category} onSelect={(c) => updateData({ category: c })} />}
         {step === 2 && <StepLocation data={data} onChange={updateData} />}
         {step === 3 && <StepWhen date={data.date} onChange={(date) => updateData({ date })} />}

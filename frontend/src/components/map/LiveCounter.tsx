@@ -73,7 +73,7 @@ export function LiveCounter() {
 
   return (
     <div className="rounded-lg border border-[#334155] bg-glass-surface p-3">
-      <div className="flex items-center gap-6">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-6">
         {items.map((item) => (
           <CounterDisplay key={item.label} item={item} />
         ))}

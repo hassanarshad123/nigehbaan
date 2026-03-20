@@ -79,7 +79,7 @@ export function MapLegend() {
   if (entries.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-[#334155] bg-glass-surface p-3 w-56">
+    <div className="rounded-lg border border-[#334155] bg-glass-surface p-3 w-full sm:w-56">
       <p className="text-xs font-medium uppercase tracking-wider text-[#94A3B8] mb-2">
         Legend
       </p>

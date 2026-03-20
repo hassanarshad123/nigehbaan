@@ -55,7 +55,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
   }, []);
 
   return (
-    <div className="relative w-72">
+    <div className="relative w-full sm:w-72">
       {/* Input */}
       <div
         className={cn(

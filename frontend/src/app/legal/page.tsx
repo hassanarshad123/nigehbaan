@@ -109,8 +109,8 @@ export default function LegalPage() {
 
         {/* Filters */}
         <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4 mb-6">
-          <div className="flex flex-wrap gap-4">
-            <div className="min-w-[180px]">
+          <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-4">
+            <div>
               <label className="block text-xs text-[#94A3B8] mb-1">Court</label>
               <select
                 value={court}
@@ -124,7 +124,7 @@ export default function LegalPage() {
               </select>
             </div>
 
-            <div className="min-w-[120px]">
+            <div>
               <label className="block text-xs text-[#94A3B8] mb-1">Year</label>
               <select
                 value={year}
@@ -138,7 +138,7 @@ export default function LegalPage() {
               </select>
             </div>
 
-            <div className="min-w-[140px]">
+            <div>
               <label className="block text-xs text-[#94A3B8] mb-1">PPC Section</label>
               <select
                 value={ppcSection}
@@ -152,7 +152,7 @@ export default function LegalPage() {
               </select>
             </div>
 
-            <div className="min-w-[140px]">
+            <div>
               <label className="block text-xs text-[#94A3B8] mb-1">Outcome</label>
               <select
                 value={outcome}
@@ -168,8 +168,8 @@ export default function LegalPage() {
           </div>
         </div>
 
-        {/* Results table */}
-        <div className="rounded-lg border border-[#334155] bg-[#1E293B] overflow-hidden">
+        {/* Desktop table */}
+        <div className="hidden sm:block rounded-lg border border-[#334155] bg-[#1E293B] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -224,6 +224,57 @@ export default function LegalPage() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile card view */}
+        <div className="sm:hidden space-y-2">
+          {filtered.length === 0 ? (
+            <div className="rounded-lg border border-[#334155] bg-[#1E293B] px-4 py-8 text-center text-[#94A3B8]">
+              <Search className="mx-auto h-6 w-6 mb-2 opacity-50" />
+              No judgments found matching your filters.
+            </div>
+          ) : (
+            filtered.map((j) => (
+              <div
+                key={j.id}
+                className="rounded-lg border border-[#334155] bg-[#1E293B] p-3"
+              >
+                {/* Court + verdict */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <span className="text-sm font-medium text-[#F8FAFC]">{j.courtName}</span>
+                  <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium capitalize shrink-0', VERDICT_STYLES[j.verdict])}>
+                    {j.verdict}
+                  </span>
+                </div>
+                {/* Case number */}
+                <div className="flex items-center gap-1 text-[#06B6D4] text-xs mb-2">
+                  <FileText className="h-3 w-3" />
+                  {j.caseNumber}
+                </div>
+                {/* Details grid */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  <div>
+                    <span className="text-[#94A3B8]">Date: </span>
+                    <span className="text-[#F8FAFC] tabular-nums">{j.judgmentDate}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#94A3B8]">Sentence: </span>
+                    <span className="text-[#F8FAFC] tabular-nums">
+                      {j.sentenceYears != null ? `${j.sentenceYears} yrs` : '-'}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-[#94A3B8]">PPC: </span>
+                    {j.ppcSections.map((s) => (
+                      <span key={s} className="rounded bg-[#0F172A] px-1.5 py-0.5 text-xs text-[#F8FAFC] mr-1">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </main>
 

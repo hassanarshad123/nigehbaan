@@ -47,7 +47,7 @@ export function ProvinceComparison() {
       <h3 className="text-sm font-semibold text-[#F8FAFC] mb-4">
         Province Comparison
       </h3>
-      <div className="h-64">
+      <div className="h-48 sm:h-64">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-[#94A3B8]" />
@@ -73,7 +73,7 @@ export function ProvinceComparison() {
                 stroke="#94A3B8"
                 tick={{ fill: '#94A3B8', fontSize: 11 }}
                 axisLine={{ stroke: '#334155' }}
-                width={80}
+                width={60}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(51, 65, 85, 0.3)' }} />
               <Bar

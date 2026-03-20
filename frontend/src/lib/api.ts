@@ -218,6 +218,43 @@ export function fetchConvictionRates(years?: number): Promise<ConvictionRateItem
   return apiFetch(`/dashboard/conviction-rates${query}`);
 }
 
+// ── Scrapers ──────────────────────────────────────────────────
+
+export interface ScraperStatusResponse {
+  id: number;
+  name: string;
+  scraperName: string | null;
+  sourceType: string | null;
+  url: string | null;
+  isActive: boolean;
+  lastScraped: string | null;
+  lastUpdated: string | null;
+  recordCount: number;
+  articlesLast24h: number;
+  status: 'healthy' | 'warning' | 'error' | 'inactive';
+  schedule: string | null;
+  notes: string | null;
+}
+
+export interface ScrapersSummaryResponse {
+  totalScrapers: number;
+  activeScrapers: number;
+  healthyScrapers: number;
+  warningScrapers: number;
+  errorScrapers: number;
+  totalArticles: number;
+  articlesLast24h: number;
+  lastActivity: string | null;
+}
+
+export function fetchScrapers(): Promise<ScraperStatusResponse[]> {
+  return apiFetch('/scrapers/');
+}
+
+export function fetchScrapersSummary(): Promise<ScrapersSummaryResponse> {
+  return apiFetch('/scrapers/summary');
+}
+
 // ── Public Reports ─────────────────────────────────────────────
 
 export function submitPublicReport(report: {

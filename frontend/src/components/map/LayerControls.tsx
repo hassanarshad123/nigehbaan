@@ -65,7 +65,7 @@ export function LayerControls() {
   const toggleLayer = useMapStore((s) => s.toggleLayer);
 
   return (
-    <div className="rounded-lg border border-[#334155] bg-glass-surface p-3 w-56">
+    <div className="rounded-lg border border-[#334155] bg-glass-surface p-3 w-full sm:w-56">
       <div className="flex items-center gap-2 mb-3 text-xs font-medium uppercase tracking-wider text-[#94A3B8]">
         <Layers className="h-3.5 w-3.5" />
         <span>Layers</span>

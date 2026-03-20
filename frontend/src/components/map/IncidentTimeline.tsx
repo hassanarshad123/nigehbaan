@@ -31,7 +31,7 @@ export function IncidentTimeline() {
   const pctEnd = ((yearRange[1] - MIN_YEAR) / (MAX_YEAR - MIN_YEAR)) * 100;
 
   return (
-    <div className="rounded-lg border border-[#334155] bg-glass-surface p-3 w-72">
+    <div className="rounded-lg border border-[#334155] bg-glass-surface p-3 w-full sm:w-72">
       <div className="flex items-center gap-2 mb-3 text-xs font-medium uppercase tracking-wider text-[#94A3B8]">
         <Calendar className="h-3.5 w-3.5" />
         <span>Timeline</span>
