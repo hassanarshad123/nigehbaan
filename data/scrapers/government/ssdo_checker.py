@@ -37,8 +37,21 @@ class SSDOChecker(BaseScraper):
         "/",
     ]
 
+    async def is_site_available(self) -> bool:
+        """Check if ssdo.org.pk responds at all."""
+        try:
+            client = await self.get_client()
+            response = await client.head(self.source_url, follow_redirects=True)
+            return response.status_code < 500
+        except Exception:
+            return False
+
     async def fetch_publications_page(self) -> str:
-        """Fetch the SSDO publications/reports page."""
+        """Fetch the SSDO publications/reports page.
+
+        Falls back to Wayback Machine if the live site is down.
+        """
+        # Try live site first
         for path in self.PUBLICATION_PATHS:
             url = f"{self.source_url}{path}"
             try:
@@ -47,6 +60,19 @@ class SSDOChecker(BaseScraper):
                     return response.text
             except Exception:
                 continue
+
+        # Wayback Machine fallback
+        logger.info("[%s] Live site failed, trying Wayback Machine", self.name)
+        for path in self.PUBLICATION_PATHS:
+            wayback_url = f"https://web.archive.org/web/2024/https://ssdo.org.pk{path}"
+            try:
+                response = await self.fetch(wayback_url)
+                if response.status_code == 200 and len(response.text) > 500:
+                    logger.info("[%s] Wayback fallback succeeded for %s", self.name, path)
+                    return response.text
+            except Exception:
+                continue
+
         return ""
 
     def parse_publication_links(
@@ -111,10 +137,16 @@ class SSDOChecker(BaseScraper):
             return None
 
     async def scrape(self) -> list[dict[str, Any]]:
-        """Execute the SSDO publication check."""
+        """Execute the SSDO publication check.
+
+        Returns empty list gracefully if both live and Wayback fail.
+        """
         html = await self.fetch_publications_page()
         if not html:
-            logger.warning("[%s] Could not fetch publications page", self.name)
+            logger.warning(
+                "[%s] Could not fetch publications page (live or Wayback)",
+                self.name,
+            )
             return []
 
         publications = self.parse_publication_links(html)

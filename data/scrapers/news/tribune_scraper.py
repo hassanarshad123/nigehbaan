@@ -36,12 +36,24 @@ _TRIBUNE_HEADERS: dict[str, str] = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/125.0.0.0 Safari/537.36"
+        "Chrome/131.0.0.0 Safari/537.36"
     ),
     "Referer": "https://tribune.com.pk/",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
+    "Upgrade-Insecure-Requests": "1",
 }
+
+# Google News RSS fallback for when Tribune blocks direct access
+_GOOGLE_NEWS_TRIBUNE_FALLBACK = (
+    "https://news.google.com/rss/search?"
+    "q=site:tribune.com.pk+child+trafficking&hl=en-PK&gl=PK&ceid=PK:en"
+)
 
 # Maximum number of tag pages to scrape per run
 MAX_TAG_PAGES = 3
@@ -67,6 +79,7 @@ class TribuneScraper(BaseScraper):
     tag_page_url: str = "https://tribune.com.pk/child-trafficking/"
     schedule: str = "0 */6 * * *"
     priority: str = "P1"
+    rate_limit_delay: float = 2.0
     max_retries: int = 1  # Tribune 403s are permanent, don't waste time retrying
 
     async def get_client(self) -> httpx.AsyncClient:
@@ -381,6 +394,27 @@ class TribuneScraper(BaseScraper):
                 all_stubs.extend(result)
             elif isinstance(result, Exception):
                 logger.error("[%s] Tag page error: %s", self.name, result)
+
+        # Google News RSS fallback if no stubs from direct sources
+        if not all_stubs:
+            logger.info("[%s] No direct stubs, trying Google News fallback", self.name)
+            try:
+                response = await self.fetch(_GOOGLE_NEWS_TRIBUNE_FALLBACK)
+                gn_parsed = await asyncio.to_thread(feedparser.parse, response.text)
+                for entry in gn_parsed.entries:
+                    link = entry.get("link", "")
+                    if link and "tribune.com.pk" in link:
+                        all_stubs.append({
+                            "title": entry.get("title", "").strip(),
+                            "url": link.strip(),
+                            "published_date": entry.get("published", ""),
+                        })
+                logger.info(
+                    "[%s] Google News fallback yielded %d Tribune stubs",
+                    self.name, len(all_stubs),
+                )
+            except Exception as exc:
+                logger.error("[%s] Google News fallback failed: %s", self.name, exc)
 
         if not all_stubs:
             logger.warning("[%s] No article stubs found", self.name)

@@ -51,6 +51,13 @@ class LHCScraper(BaseCourtScraper):
     schedule: str = "0 3 * * 2"
     priority: str = "P1"
 
+    PORTAL_URLS: list[str] = [
+        "https://data.lhc.gov.pk/reported_judgments/",
+        "https://sys.lhc.gov.pk/appjudgments/",
+        "https://judgment.lhc.gov.pk/",
+        "https://data.lhc.gov.pk/judgments/",
+    ]
+
     async def _fetch_search_page(
         self,
         section: str,
@@ -58,6 +65,8 @@ class LHCScraper(BaseCourtScraper):
         page: int = 1,
     ) -> str:
         """Fetch a search results page for a given PPC section and year.
+
+        Tries multiple portal URLs until one succeeds.
 
         Args:
             section: PPC section number to search (e.g. '370').
@@ -72,12 +81,23 @@ class LHCScraper(BaseCourtScraper):
             "year": str(year),
             "page": str(page),
         }
-        response = await self.fetch(
-            self.source_url,
-            method="GET",
-            params=params,
-        )
-        return response.text
+        for portal_url in self.PORTAL_URLS:
+            try:
+                response = await self.fetch(
+                    portal_url,
+                    method="GET",
+                    params=params,
+                )
+                if response.status_code == 200 and len(response.text) > 200:
+                    return response.text
+            except Exception as exc:
+                logger.warning(
+                    "[%s] Portal %s failed: %s", self.name, portal_url, exc,
+                )
+                continue
+
+        logger.warning("[%s] All portal URLs failed for section=%s year=%d", self.name, section, year)
+        return ""
 
     def _parse_listing(self, html: str) -> list[dict[str, Any]]:
         """Parse LHC judgment listing HTML into case reference dicts.

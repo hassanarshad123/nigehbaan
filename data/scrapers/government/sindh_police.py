@@ -27,19 +27,41 @@ class SindhPoliceScraper(BaseScraper):
 
     name: str = "sindh_police"
     source_url: str = "https://sindhpolice.gov.pk"
-    crime_stats_url: str = (
-        "https://sindhpolice.gov.pk/annoucements/crime_stat_all_cities.html"
-    )
     missing_url: str = "https://sindhpolice.gov.pk/missing_person"
     schedule: str = "0 3 5 * *"
     priority: str = "P1"
     rate_limit_delay: float = 2.0
+    request_timeout: float = 60.0
+    max_retries: int = 5
+
+    CRIME_STATS_URLS: list[str] = [
+        "https://sindhpolice.gov.pk/announcements/crime_stat_all_cities.html",
+        "https://sindhpolice.gov.pk/annoucements/crime_stat_all_cities.html",  # old typo URL
+        "https://sindhpolice.gov.pk/crime-statistics",
+    ]
 
     async def fetch_crime_statistics(self) -> list[dict[str, Any]]:
-        """Fetch and parse range-level crime statistics."""
+        """Fetch and parse range-level crime statistics.
+
+        Tries multiple URLs since the site has had URL typos historically.
+        """
         records: list[dict[str, Any]] = []
+        response = None
+        for url in self.CRIME_STATS_URLS:
+            try:
+                response = await self.fetch(url)
+                if response.status_code == 200:
+                    logger.info("[%s] Crime stats fetched from %s", self.name, url)
+                    break
+            except Exception as exc:
+                logger.warning("[%s] Failed to fetch %s: %s", self.name, url, exc)
+                continue
+
+        if not response:
+            logger.error("[%s] All crime stats URLs failed", self.name)
+            return records
+
         try:
-            response = await self.fetch(self.crime_stats_url)
             soup = BeautifulSoup(response.text, "lxml")
 
             for table in soup.find_all("table"):

@@ -20,6 +20,7 @@ from typing import Any
 
 import asyncio
 import logging
+import re
 
 import feedparser
 from bs4 import BeautifulSoup
@@ -45,71 +46,85 @@ class TheNewsScraper(BaseScraper):
 
     name: str = "the_news"
     source_url: str = "https://www.thenews.com.pk/rss"
-    fallback_rss_url: str = "https://www.thenews.com.pk/rss/1/1"
     schedule: str = "0 */6 * * *"
     priority: str = "P1"
+
+    RSS_URLS: list[str] = [
+        "https://www.thenews.com.pk/rss",
+        "https://www.thenews.com.pk/rss/1/1",
+        "https://www.thenews.com.pk/rss/1/7",  # national
+        "https://www.thenews.com.pk/rss/1/2",  # pakistan
+    ]
+
+    GOOGLE_NEWS_FALLBACK: str = (
+        "https://news.google.com/rss/search?"
+        "q=site:thenews.com.pk+child+trafficking&hl=en-PK&gl=PK&ceid=PK:en"
+    )
+
+    @staticmethod
+    def _sanitize_xml(text: str) -> str:
+        """Strip invalid XML control characters that break feedparser."""
+        return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', text)
 
     async def fetch_rss(self) -> list[dict[str, Any]]:
         """Fetch and parse The News International RSS feed.
 
+        Tries multiple RSS endpoints sequentially until one yields entries.
+
         Returns:
             List of feed entry dicts with title, link, published, summary.
         """
-        try:
-            response = await self.fetch(self.source_url)
-            parsed = await asyncio.to_thread(feedparser.parse, response.text)
+        entries: list[dict[str, Any]] = []
 
-            if parsed.bozo:
-                logger.warning(
-                    "[%s] RSS feed malformed (bozo): %s",
-                    self.name, parsed.bozo_exception,
-                )
-                # feedparser can still extract entries from malformed XML
-                if not parsed.entries:
-                    # Try category-specific fallback RSS
-                    logger.info(
-                        "[%s] Main RSS empty, trying fallback: %s",
-                        self.name, self.fallback_rss_url,
-                    )
-                    fallback_resp = await self.fetch(self.fallback_rss_url)
-                    parsed = await asyncio.to_thread(
-                        feedparser.parse, fallback_resp.text,
-                    )
-                    if not parsed.entries:
-                        return []
+        for rss_url in self.RSS_URLS:
+            try:
+                response = await self.fetch(rss_url)
+                sanitized = self._sanitize_xml(response.text)
+                parsed = await asyncio.to_thread(feedparser.parse, sanitized)
 
-            entries: list[dict[str, Any]] = []
-            for entry in parsed.entries:
-                link = entry.get("link", "")
-                if not link:
+                if parsed.bozo and not parsed.entries:
+                    logger.warning(
+                        "[%s] RSS feed malformed at %s: %s",
+                        self.name, rss_url, parsed.bozo_exception,
+                    )
                     continue
 
-                published = ""
-                if entry.get("published_parsed"):
-                    try:
-                        dt = datetime(
-                            *entry["published_parsed"][:6],
-                            tzinfo=timezone.utc,
-                        )
-                        published = dt.isoformat()
-                    except (TypeError, ValueError):
-                        published = entry.get("published", "")
+                for entry in parsed.entries:
+                    link = entry.get("link", "")
+                    if not link:
+                        continue
 
-                entries.append({
-                    "title": entry.get("title", "").strip(),
-                    "url": link.strip(),
-                    "published_date": published,
-                    "summary": entry.get("summary", "").strip(),
-                })
+                    published = ""
+                    if entry.get("published_parsed"):
+                        try:
+                            dt = datetime(
+                                *entry["published_parsed"][:6],
+                                tzinfo=timezone.utc,
+                            )
+                            published = dt.isoformat()
+                        except (TypeError, ValueError):
+                            published = entry.get("published", "")
 
-            logger.info(
-                "[%s] Fetched %d RSS entries", self.name, len(entries),
-            )
-            return entries
+                    entries.append({
+                        "title": entry.get("title", "").strip(),
+                        "url": link.strip(),
+                        "published_date": published,
+                        "summary": entry.get("summary", "").strip(),
+                    })
 
-        except Exception as exc:
-            logger.error("[%s] Failed to fetch RSS: %s", self.name, exc)
-            return []
+                if entries:
+                    logger.info(
+                        "[%s] Fetched %d RSS entries from %s",
+                        self.name, len(entries), rss_url,
+                    )
+                    return entries
+
+            except Exception as exc:
+                logger.warning("[%s] RSS fetch failed for %s: %s", self.name, rss_url, exc)
+                continue
+
+        logger.warning("[%s] All RSS endpoints failed", self.name)
+        return entries
 
     async def fetch_article(self, url: str) -> dict[str, Any]:
         """Fetch full article content from The News article URL.
@@ -249,8 +264,31 @@ class TheNewsScraper(BaseScraper):
         """
         # 1. Fetch RSS feed entries
         rss_entries = await self.fetch_rss()
+
+        # Google News fallback if no RSS entries
         if not rss_entries:
-            logger.warning("[%s] No RSS entries found", self.name)
+            logger.info("[%s] No RSS entries, trying Google News fallback", self.name)
+            try:
+                response = await self.fetch(self.GOOGLE_NEWS_FALLBACK)
+                sanitized = self._sanitize_xml(response.text)
+                gn_parsed = await asyncio.to_thread(feedparser.parse, sanitized)
+                for entry in gn_parsed.entries:
+                    link = entry.get("link", "")
+                    if link and "thenews.com.pk" in link:
+                        rss_entries.append({
+                            "title": entry.get("title", "").strip(),
+                            "url": link.strip(),
+                            "published_date": entry.get("published", ""),
+                        })
+                logger.info(
+                    "[%s] Google News fallback yielded %d entries",
+                    self.name, len(rss_entries),
+                )
+            except Exception as exc:
+                logger.error("[%s] Google News fallback failed: %s", self.name, exc)
+
+        if not rss_entries:
+            logger.warning("[%s] No entries found from any source", self.name)
             return []
 
         # 2. Fetch full articles with concurrency limit

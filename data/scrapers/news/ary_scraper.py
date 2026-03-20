@@ -21,6 +21,7 @@ from urllib.parse import quote_plus
 
 import asyncio
 import logging
+import re
 
 import feedparser
 from bs4 import BeautifulSoup
@@ -37,6 +38,11 @@ WP_API_SEARCH_TERMS: list[str] = [
     "kidnapping children",
     "human trafficking",
 ]
+
+_GOOGLE_NEWS_ARY_FALLBACK = (
+    "https://news.google.com/rss/search?"
+    "q=site:arynews.tv+child+trafficking&hl=en-PK&gl=PK&ceid=PK:en"
+)
 
 
 class ARYScraper(BaseScraper):
@@ -57,6 +63,11 @@ class ARYScraper(BaseScraper):
     source_url: str = "https://arynews.tv/feed/"
     schedule: str = "0 */6 * * *"
     priority: str = "P1"
+
+    GOOGLE_NEWS_FALLBACK: str = (
+        "https://news.google.com/rss/search?"
+        "q=site:arynews.tv+child+trafficking&hl=en-PK&gl=PK&ceid=PK:en"
+    )
 
     async def fetch_rss(self) -> list[dict[str, Any]]:
         """Fetch and parse the ARY News WordPress RSS feed.
@@ -243,6 +254,8 @@ class ARYScraper(BaseScraper):
             full_text = ""
             content_selectors = [
                 ("div", {"class": "entry-content"}),
+                ("div", {"class": "single-post-content"}),
+                ("div", {"class": "entry-content-wrap"}),
                 ("div", {"class": "post-content"}),
                 ("div", {"class": "article-content"}),
                 ("div", {"class": "td-post-content"}),
@@ -367,6 +380,53 @@ class ARYScraper(BaseScraper):
             if url and url not in seen_urls:
                 seen_urls.add(url)
                 unique_stubs.append(stub)
+
+        # Google News RSS fallback if no stubs from RSS or WP API
+        if not unique_stubs:
+            logger.info("[%s] No direct stubs, trying Google News fallback", self.name)
+            try:
+                response = await self.fetch(_GOOGLE_NEWS_ARY_FALLBACK)
+                gn_parsed = await asyncio.to_thread(feedparser.parse, response.text)
+                for entry in gn_parsed.entries:
+                    link = entry.get("link", "")
+                    if link and "arynews.tv" in link:
+                        stub = {
+                            "title": entry.get("title", "").strip(),
+                            "url": link.strip(),
+                            "published_date": entry.get("published", ""),
+                        }
+                        url = stub["url"]
+                        if url not in seen_urls:
+                            seen_urls.add(url)
+                            unique_stubs.append(stub)
+                logger.info(
+                    "[%s] Google News fallback yielded %d stubs",
+                    self.name, len(unique_stubs),
+                )
+            except Exception as exc:
+                logger.error("[%s] Google News fallback failed: %s", self.name, exc)
+
+        # Google News fallback if no stubs from direct sources
+        if not unique_stubs:
+            logger.info("[%s] No direct stubs, trying Google News fallback", self.name)
+            try:
+                response = await self.fetch(self.GOOGLE_NEWS_FALLBACK)
+                gn_parsed = await asyncio.to_thread(feedparser.parse, response.text)
+                for entry in gn_parsed.entries:
+                    link = entry.get("link", "")
+                    if link and "arynews.tv" in link and link not in seen_urls:
+                        seen_urls.add(link)
+                        unique_stubs.append({
+                            "title": entry.get("title", "").strip(),
+                            "url": link.strip(),
+                            "published_date": entry.get("published", ""),
+                        })
+                logger.info(
+                    "[%s] Google News fallback yielded %d ARY stubs",
+                    self.name, len(unique_stubs),
+                )
+            except Exception as exc:
+                logger.error("[%s] Google News fallback failed: %s", self.name, exc)
 
         if not unique_stubs:
             logger.warning("[%s] No article stubs found", self.name)

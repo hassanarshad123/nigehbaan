@@ -21,6 +21,9 @@ from typing import Any
 import asyncio
 import logging
 
+import feedparser
+from bs4 import BeautifulSoup
+
 from data.scrapers.base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
@@ -69,6 +72,11 @@ class GeoScraper(BaseScraper):
         "bonded labour",
         "human trafficking",
     ]
+
+    GOOGLE_NEWS_FALLBACK: str = (
+        "https://news.google.com/rss/search?"
+        "q=site:geo.tv+child+trafficking&hl=en-PK&gl=PK&ceid=PK:en"
+    )
 
     def __init__(self) -> None:
         super().__init__()
@@ -389,57 +397,154 @@ class GeoScraper(BaseScraper):
                 except Exception:
                     pass
 
+    async def _fetch_article_httpx(self, url: str) -> dict[str, Any]:
+        """Fetch article using httpx+BeautifulSoup (no browser needed)."""
+        try:
+            response = await self.fetch(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            title = ""
+            h1 = soup.find("h1")
+            if h1:
+                title = h1.get_text(strip=True)
+            if not title:
+                og = soup.find("meta", property="og:title")
+                if og:
+                    title = og.get("content", "")
+
+            full_text = ""
+            for selector in [
+                ("div", {"class": "content-area"}),
+                ("div", {"class": "article-content"}),
+                ("div", {"class": "story-detail"}),
+                ("article", {}),
+                ("div", {"class": "single-article-content"}),
+            ]:
+                tag_name, attrs = selector
+                el = soup.find(tag_name, attrs) if attrs else soup.find(tag_name)
+                if el:
+                    paragraphs = el.find_all("p")
+                    full_text = "\n\n".join(
+                        p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True)
+                    )
+                    if full_text:
+                        break
+
+            author = ""
+            for sel in [
+                ("span", {"class": "author-name"}),
+                ("a", {"rel": "author"}),
+            ]:
+                tag = soup.find(sel[0], sel[1])
+                if tag:
+                    author = tag.get_text(strip=True)
+                    break
+
+            published_date = ""
+            time_tag = soup.find("time")
+            if time_tag:
+                published_date = time_tag.get("datetime", time_tag.get_text(strip=True))
+            if not published_date:
+                dm = soup.find("meta", property="article:published_time")
+                if dm:
+                    published_date = dm.get("content", "")
+
+            return {
+                "url": url,
+                "title": title,
+                "author": author,
+                "published_date": published_date,
+                "full_text": full_text,
+                "source": "geo_news",
+                "scraped_at": datetime.now(timezone.utc).isoformat(),
+            }
+        except Exception as exc:
+            logger.error("[%s] httpx fetch failed for %s: %s", self.name, url, exc)
+            return {}
+
+    async def _scrape_via_google_news(self) -> list[dict[str, Any]]:
+        """Scrape Geo articles via Google News RSS (no browser needed)."""
+        articles: list[dict[str, Any]] = []
+        try:
+            response = await self.fetch(self.GOOGLE_NEWS_FALLBACK)
+            parsed = await asyncio.to_thread(feedparser.parse, response.text)
+
+            geo_urls: list[str] = []
+            for entry in parsed.entries:
+                link = entry.get("link", "")
+                if link and "geo.tv" in link:
+                    geo_urls.append(link)
+
+            logger.info("[%s] Google News RSS found %d Geo URLs", self.name, len(geo_urls))
+
+            semaphore = asyncio.Semaphore(3)
+            async def _fetch(url: str) -> dict[str, Any]:
+                async with semaphore:
+                    return await self._fetch_article_httpx(url)
+
+            results = await asyncio.gather(
+                *[_fetch(url) for url in geo_urls],
+                return_exceptions=True,
+            )
+
+            for result in results:
+                if isinstance(result, dict) and result.get("url"):
+                    combined = f"{result.get('title', '')} {result.get('full_text', '')}"
+                    if self.matches_keywords(combined):
+                        articles.append(result)
+
+        except Exception as exc:
+            logger.error("[%s] Google News fallback failed: %s", self.name, exc)
+
+        return articles
+
     async def scrape(self) -> list[dict[str, Any]]:
         """Execute the Geo News scraping pipeline.
 
-        Initializes browser, runs all search queries, collects
-        and deduplicates article URLs, fetches full content,
-        and cleans up browser resources.
+        Tries Playwright browser first, falls back to Google News RSS +
+        httpx if Playwright/chromium is not available.
 
         Returns:
             List of article records matching trafficking keywords.
         """
         if not PLAYWRIGHT_AVAILABLE:
-            logger.error(
-                "[%s] Playwright not installed — cannot scrape Geo News. "
-                "Install with: pip install playwright && python -m playwright install chromium",
+            logger.info(
+                "[%s] Playwright not installed, using Google News RSS fallback",
                 self.name,
             )
-            return []
+            return await self._scrape_via_google_news()
 
         try:
             # 1. Initialize Playwright browser
             await self.init_browser()
             if not self._context:
-                logger.error("[%s] Failed to initialize browser", self.name)
-                return []
+                logger.warning("[%s] Browser init failed, using Google News fallback", self.name)
+                return await self._scrape_via_google_news()
 
             # 2. Search for articles across all queries
             all_urls: list[str] = []
             for query in self.SEARCH_QUERIES:
                 urls = await self.search_articles(query)
                 all_urls.extend(urls)
-                # Small delay between searches to avoid rate limiting
                 await asyncio.sleep(2)
 
             # 3. Deduplicate URLs
-            unique_urls = list(dict.fromkeys(all_urls))  # preserves order
+            unique_urls = list(dict.fromkeys(all_urls))
             logger.info(
                 "[%s] %d unique article URLs from %d total across %d queries",
                 self.name, len(unique_urls), len(all_urls), len(self.SEARCH_QUERIES),
             )
 
             if not unique_urls:
-                logger.warning("[%s] No article URLs found", self.name)
-                return []
+                logger.info("[%s] No Playwright URLs, trying Google News fallback", self.name)
+                return await self._scrape_via_google_news()
 
-            # 4. Fetch full articles (sequentially to avoid overwhelming the browser)
+            # 4. Fetch full articles
             articles: list[dict[str, Any]] = []
             for url in unique_urls:
                 try:
                     article = await self.fetch_article(url)
                     if article and article.get("url"):
-                        # Filter by keywords
                         combined_text = (
                             f"{article.get('title', '')} "
                             f"{article.get('full_text', '')}"
@@ -450,7 +555,6 @@ class GeoScraper(BaseScraper):
                     logger.error(
                         "[%s] Error fetching %s: %s", self.name, url, exc,
                     )
-                # Brief pause between article fetches
                 await asyncio.sleep(1)
 
             logger.info(
@@ -460,11 +564,10 @@ class GeoScraper(BaseScraper):
             return articles
 
         except Exception as exc:
-            logger.error("[%s] Scrape pipeline error: %s", self.name, exc)
-            return []
+            logger.error("[%s] Scrape pipeline error: %s — trying Google News fallback", self.name, exc)
+            return await self._scrape_via_google_news()
 
         finally:
-            # 5. Always close browser
             await self.close_browser()
 
     def validate(self, record: dict[str, Any]) -> bool:

@@ -18,7 +18,7 @@ from data.scrapers.base_scraper import BaseScraper
 logger = logging.getLogger(__name__)
 
 TIER_PATTERN = re.compile(
-    r"Tier\s+(3|2\s+Watch\s+List|2|1)",
+    r"Tier\s+(3|2\s*(?:Watch\s*List)?|1)",
     re.IGNORECASE,
 )
 
@@ -35,7 +35,7 @@ class TIPReportScraper(BaseScraper):
     rate_limit_delay: float = 2.0
 
     FIRST_YEAR: int = 2001
-    CURRENT_YEAR: int = 2025
+    CURRENT_YEAR: int = datetime.now().year
 
     # Alternate URL patterns used across years
     URL_PATTERNS: list[str] = [
