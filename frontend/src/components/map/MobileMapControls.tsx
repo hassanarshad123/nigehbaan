@@ -18,7 +18,7 @@ export function MobileMapControls() {
       </div>
 
       {/* Mobile: toggle button + panel */}
-      <div className="sm:hidden">
+      <div className="sm:hidden relative">
         <button
           onClick={() => setIsOpen((v) => !v)}
           className={cn(

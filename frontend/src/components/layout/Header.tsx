@@ -100,7 +100,7 @@ export function Header() {
       {/* Backdrop overlay */}
       {isMenuOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 md:hidden"
+          className="fixed inset-0 z-[45] bg-black/30 md:hidden"
           onClick={() => setIsMenuOpen(false)}
         />
       )}

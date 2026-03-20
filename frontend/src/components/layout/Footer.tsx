@@ -44,6 +44,9 @@ export function Footer() {
             <span>Nigehbaan Project — Open Source Intelligence for Child Protection</span>
           </div>
         </div>
+        <p className="text-center text-xs text-[#64748B] mt-4 md:mt-0">
+          Made with love by Hassan
+        </p>
       </div>
     </footer>
   );
