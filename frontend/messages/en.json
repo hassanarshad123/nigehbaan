@@ -10,6 +10,7 @@
     "legal": "Legal",
     "resources": "Resources",
     "scrapers": "Scrapers",
+    "compare": "Compare",
     "about": "About",
     "admin": "Admin"
   },
@@ -88,7 +89,22 @@
       "edhi": "Edhi Foundation (1098)",
       "roshni": "Roshni Helpline (0800-22444)"
     },
-    "backToMap": "Back to Map"
+    "backToMap": "Back to Map",
+    "trackReport": "Track Your Report"
+  },
+  "reportTrack": {
+    "title": "Track Your Report",
+    "subtitle": "Enter your reference number to check the status of your report.",
+    "placeholder": "Reference number or report ID",
+    "track": "Track",
+    "notFound": "Report not found. Please check your reference number."
+  },
+  "compare": {
+    "title": "District Comparison",
+    "subtitle": "Compare vulnerability indicators across 2-4 districts side by side.",
+    "selectDistricts": "Select Districts to Compare",
+    "radarTitle": "Vulnerability Radar",
+    "tableTitle": "Raw Values"
   },
   "district": {
     "riskScore": "Risk Score",

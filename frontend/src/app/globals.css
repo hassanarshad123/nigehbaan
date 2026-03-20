@@ -78,16 +78,44 @@
   box-shadow: 0 0 12px 0 rgba(239, 68, 68, 0.4), 0 0 0 1px rgba(239, 68, 68, 0.5);
 }
 
+/* ── Firefox range input styling ───────────────────────────── */
+input[type='range']::-moz-range-thumb {
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #06B6D4;
+  border: 2px solid #0F172A;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-track {
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: transparent;
+}
+
 /* ── Map container overrides ────────────────────────────────── */
-.mapboxgl-ctrl-logo,
-.maplibregl-ctrl-logo {
-  display: none !important;
+.maplibregl-ctrl-attrib {
+  background: rgba(15, 23, 42, 0.7) !important;
+  backdrop-filter: blur(4px);
+  border-radius: 4px !important;
 }
 
 .mapboxgl-ctrl-attrib-inner,
 .maplibregl-ctrl-attrib-inner {
   color: #94A3B8 !important;
   font-size: 10px !important;
+}
+
+.maplibregl-ctrl-attrib-inner a {
+  color: #64748B !important;
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  min-height: 20px !important;
 }
 
 /* ── Custom utilities ───────────────────────────────────────── */

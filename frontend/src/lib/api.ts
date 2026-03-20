@@ -18,20 +18,28 @@ class APIError extends Error {
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}/api/v1${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-    ...options,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new APIError(res.status, `API error ${res.status}: ${body}`);
+  try {
+    const res = await fetch(`${API_BASE}/api/v1${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      ...options,
+      signal: options?.signal ?? controller.signal,
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new APIError(res.status, `API error ${res.status}: ${body}`);
+    }
+
+    return res.json() as Promise<T>;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return res.json() as Promise<T>;
 }
 
 // ── GeoJSON type for map endpoints ─────────────────────────────
@@ -150,8 +158,48 @@ export function fetchDistrictIncidents(pcode: string, years?: number): Promise<D
   return apiFetch(`/districts/${pcode}/incidents${query}`);
 }
 
-export function fetchVulnerability(pcode: string): Promise<Record<string, unknown>> {
+export interface DistrictVulnerability {
+  pcode: string;
+  literacyRate: number | null;
+  childLaborRate: number | null;
+  povertyHeadcount: number | null;
+  foodInsecurity: number | null;
+  outOfSchoolRate: number | null;
+  childMarriageRate: number | null;
+  kilnDensity: number | null;
+  borderDistanceKm: number | null;
+  floodExposure: number | null;
+  enrollmentRate: number | null;
+  incidentRate: number | null;
+  convictionRate: number | null;
+  traffickingRiskScore: number | null;
+}
+
+export function fetchVulnerability(pcode: string): Promise<DistrictVulnerability> {
   return apiFetch(`/districts/${pcode}/vulnerability`);
+}
+
+// ── Report tracking ─────────────────────────────────────────
+
+export interface ReportStatusResponse {
+  id: number;
+  referenceNumber: string;
+  reportType: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  referredTo: string | null;
+}
+
+export function fetchReportStatus(reportId: string): Promise<ReportStatusResponse> {
+  return apiFetch(`/reports/${reportId}`);
+}
+
+// ── Export helper ────────────────────────────────────────────
+
+export function buildExportUrl(table: string, params?: Record<string, string>): string {
+  const search = new URLSearchParams({ table, ...params });
+  return `${API_BASE}/api/v1/export/csv?${search.toString()}`;
 }
 
 // ── Dashboard ──────────────────────────────────────────────────

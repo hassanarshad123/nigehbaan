@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { LanguageToggle } from './LanguageToggle';
-import { Map, BarChart3, FileWarning, Scale, LifeBuoy, Info, Activity, Menu, X } from 'lucide-react';
+import { Map, BarChart3, FileWarning, Scale, LifeBuoy, Info, Activity, Menu, X, GitCompareArrows } from 'lucide-react';
 
 interface NavItem {
   href: string;
@@ -18,13 +19,20 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', labelKey: 'dashboard', icon: <BarChart3 className="h-4 w-4" /> },
   { href: '/report', labelKey: 'report', icon: <FileWarning className="h-4 w-4" /> },
   { href: '/legal', labelKey: 'legal', icon: <Scale className="h-4 w-4" /> },
+  { href: '/compare', labelKey: 'compare', icon: <GitCompareArrows className="h-4 w-4" /> },
   { href: '/scrapers', labelKey: 'scrapers', icon: <Activity className="h-4 w-4" /> },
   { href: '/resources', labelKey: 'resources', icon: <LifeBuoy className="h-4 w-4" /> },
   { href: '/about', labelKey: 'about', icon: <Info className="h-4 w-4" /> },
 ];
 
+function isActive(pathname: string, href: string): boolean {
+  if (href === '/') return pathname === '/';
+  return pathname.startsWith(href);
+}
+
 export function Header() {
   const t = useTranslations('nav');
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -41,20 +49,26 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm',
-                  'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]',
-                  'transition-default',
-                )}
-              >
-                {item.icon}
-                <span>{t(item.labelKey)}</span>
-              </Link>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm',
+                    'transition-default',
+                    active
+                      ? 'text-[#F8FAFC] bg-[#1E293B] border-b-2 border-[#06B6D4]'
+                      : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]',
+                  )}
+                >
+                  {item.icon}
+                  <span>{t(item.labelKey)}</span>
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Right side */}
@@ -79,21 +93,27 @@ export function Header() {
           )}
         >
           <nav className="bg-glass px-4 py-2">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsMenuOpen(false)}
-                className={cn(
-                  'flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm',
-                  'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]',
-                  'transition-default',
-                )}
-              >
-                {item.icon}
-                <span>{t(item.labelKey)}</span>
-              </Link>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm',
+                    'transition-default',
+                    active
+                      ? 'text-[#F8FAFC] bg-[#1E293B] border-l-2 border-[#06B6D4]'
+                      : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]',
+                  )}
+                >
+                  {item.icon}
+                  <span>{t(item.labelKey)}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </header>

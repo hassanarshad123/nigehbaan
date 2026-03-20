@@ -20,32 +20,35 @@ export default function HomePage() {
       {/* Full-screen map */}
       <MapContainer />
 
-      {/* Header overlay */}
+      {/* Header overlay — z-50 */}
       <Header />
 
-      {/* Search bar — top center below header */}
-      <div className="absolute top-16 left-2 right-14 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-40">
+      {/* Search bar — top center below header — z-30 */}
+      <div className="absolute top-16 left-2 right-14 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-30">
         <SearchBar />
       </div>
 
-      {/* Layer controls — right side */}
-      <div className="absolute top-16 right-2 z-40">
+      {/* Layer controls — right side — z-30 */}
+      <div className="absolute top-16 right-2 z-30">
         <MobileMapControls />
       </div>
 
-      {/* Time slider — bottom center above timeline */}
-      <div className="absolute bottom-44 left-2 right-2 sm:bottom-28 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-96 z-40">
-        <TimeSlider />
-      </div>
-
-      {/* Timeline — bottom center */}
-      <div className="absolute bottom-32 left-2 right-2 sm:bottom-20 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-40">
-        <IncidentTimeline />
-      </div>
-
-      {/* Live counter — bottom left */}
-      <div className="absolute bottom-2 left-2 right-2 sm:right-auto sm:left-4 sm:bottom-4 z-40">
-        <LiveCounter />
+      {/* Bottom controls container — z-20, stacked to prevent overlap */}
+      <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 z-20 pointer-events-none">
+        <div className="flex flex-col items-center gap-2 pointer-events-auto">
+          {/* Time slider */}
+          <div className="w-full sm:w-96">
+            <TimeSlider />
+          </div>
+          {/* Incident timeline */}
+          <div className="w-full sm:w-auto">
+            <IncidentTimeline />
+          </div>
+          {/* Live counter — left-aligned on desktop */}
+          <div className="w-full sm:w-auto sm:self-start">
+            <LiveCounter />
+          </div>
+        </div>
       </div>
     </div>
   );

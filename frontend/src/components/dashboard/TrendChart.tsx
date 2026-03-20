@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { Loader2 } from 'lucide-react';
 import { fetchTrendData } from '@/lib/api';
+import { useFilterStore } from '@/stores/filterStore';
 
 function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload || payload.length === 0) return null;
@@ -29,9 +30,14 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
 }
 
 export function TrendChart() {
+  const selectedProvince = useFilterStore((s) => s.selectedProvince);
+  const selectedTypes = useFilterStore((s) => s.selectedTypes);
   const { data, isLoading } = useQuery({
-    queryKey: ['dashboard-trends'],
-    queryFn: () => fetchTrendData(),
+    queryKey: ['dashboard-trends', selectedProvince, selectedTypes],
+    queryFn: () => fetchTrendData({
+      province: selectedProvince ?? undefined,
+      incidentType: selectedTypes.length === 1 ? selectedTypes[0] : undefined,
+    }),
   });
 
   // Aggregate by year (backend may return multiple source rows per year)

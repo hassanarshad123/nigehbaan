@@ -77,8 +77,12 @@ function sortScrapers(
   return dir === 'desc' ? sorted.reverse() : sorted;
 }
 
-export function ScraperTable() {
-  const { data, isLoading } = useQuery({
+interface ScraperTableProps {
+  statusFilter?: string;
+}
+
+export function ScraperTable({ statusFilter = 'all' }: ScraperTableProps) {
+  const { data: rawData, isLoading } = useQuery({
     queryKey: ['scrapers'],
     queryFn: fetchScrapers,
     refetchInterval: 30_000,
@@ -95,6 +99,12 @@ export function ScraperTable() {
       setSortDir('asc');
     }
   };
+
+  const data = React.useMemo(() => {
+    if (!rawData) return undefined;
+    if (statusFilter === 'all') return rawData;
+    return rawData.filter((s) => s.status === statusFilter);
+  }, [rawData, statusFilter]);
 
   const grouped = React.useMemo(() => {
     if (!data) return {};

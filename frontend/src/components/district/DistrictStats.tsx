@@ -2,14 +2,16 @@
 
 import React from 'react';
 import { formatNumber } from '@/lib/utils';
-import { Users, AlertTriangle, Factory, GraduationCap, Scale } from 'lucide-react';
+import { Users, AlertTriangle, Factory, BookOpen, Scale, Baby } from 'lucide-react';
 
 interface DistrictStatsProps {
   population: number;
   incidentCount: number;
   kilnCount: number;
-  schoolCount: number;
   convictionRate: number;
+  literacyRate?: number | null;
+  childLaborRate?: number | null;
+  povertyHeadcount?: number | null;
 }
 
 interface StatCardProps {
@@ -35,8 +37,10 @@ export function DistrictStats({
   population,
   incidentCount,
   kilnCount,
-  schoolCount,
   convictionRate,
+  literacyRate,
+  childLaborRate,
+  povertyHeadcount,
 }: DistrictStatsProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -59,9 +63,9 @@ export function DistrictStats({
         color="#F97316"
       />
       <StatCard
-        icon={<GraduationCap className="h-4 w-4" />}
-        label="Schools"
-        value={formatNumber(schoolCount)}
+        icon={<BookOpen className="h-4 w-4" />}
+        label="Literacy Rate"
+        value={literacyRate != null ? `${literacyRate.toFixed(1)}%` : 'N/A'}
         color="#10B981"
       />
       <StatCard
@@ -70,6 +74,22 @@ export function DistrictStats({
         value={`${convictionRate.toFixed(1)}%`}
         color="#F59E0B"
       />
+      {childLaborRate != null && (
+        <StatCard
+          icon={<Baby className="h-4 w-4" />}
+          label="Child Labor Rate"
+          value={`${childLaborRate.toFixed(1)}%`}
+          color="#EC4899"
+        />
+      )}
+      {povertyHeadcount != null && (
+        <StatCard
+          icon={<Users className="h-4 w-4" />}
+          label="Poverty Rate"
+          value={`${povertyHeadcount.toFixed(1)}%`}
+          color="#D946EF"
+        />
+      )}
     </div>
   );
 }

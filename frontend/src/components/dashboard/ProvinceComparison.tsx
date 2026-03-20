@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { Loader2 } from 'lucide-react';
 import { fetchProvinceComparison } from '@/lib/api';
+import { useFilterStore } from '@/stores/filterStore';
 
 function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload || payload.length === 0) return null;
@@ -29,9 +30,10 @@ function CustomTooltip({ active, payload, label }: TooltipProps<number, string>)
 }
 
 export function ProvinceComparison() {
+  const yearRange = useFilterStore((s) => s.yearRange);
   const { data, isLoading } = useQuery({
-    queryKey: ['province-comparison'],
-    queryFn: () => fetchProvinceComparison(),
+    queryKey: ['province-comparison', yearRange[1]],
+    queryFn: () => fetchProvinceComparison(yearRange[1]),
   });
 
   const chartData = React.useMemo(() => {

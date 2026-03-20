@@ -1,16 +1,19 @@
 'use client';
 
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import Map, {
   NavigationControl,
   ScaleControl,
   Source,
   Layer,
+  Popup,
   type ViewStateChangeEvent,
   type LayerProps,
+  type MapLayerMouseEvent,
 } from 'react-map-gl/maplibre';
 import { useMapStore } from '@/stores/mapStore';
 import { useMapData } from '@/hooks/useMapData';
+import { IncidentPopup } from './IncidentPopup';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const DARK_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
@@ -129,12 +132,19 @@ const routesLineLayer: LayerProps = {
   },
 };
 
+interface PopupInfo {
+  latitude: number;
+  longitude: number;
+  properties: Record<string, unknown>;
+}
+
 export function MapContainer() {
   const viewport = useMapStore((s) => s.viewport);
   const setViewport = useMapStore((s) => s.setViewport);
   const activeLayers = useMapStore((s) => s.activeLayers);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const { boundaries, filteredIncidents, kilns, borders, vulnerability, routes, countryMask } = useMapData();
+  const [popup, setPopup] = useState<PopupInfo | null>(null);
 
   const handleMove = useCallback(
     (evt: ViewStateChangeEvent) => {
@@ -146,6 +156,31 @@ export function MapContainer() {
     },
     [setViewport],
   );
+
+  const handleIncidentClick = useCallback((e: MapLayerMouseEvent) => {
+    const feature = e.features?.[0];
+    if (!feature) return;
+
+    const coords = feature.geometry.type === 'Point'
+      ? feature.geometry.coordinates as [number, number]
+      : [e.lngLat.lng, e.lngLat.lat] as [number, number];
+
+    setPopup({
+      longitude: coords[0],
+      latitude: coords[1],
+      properties: (feature.properties ?? {}) as Record<string, unknown>,
+    });
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    const map = mapRef.current;
+    if (map) map.getCanvas().style.cursor = 'pointer';
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    const map = mapRef.current;
+    if (map) map.getCanvas().style.cursor = '';
+  }, []);
 
   const vis = (layerId: string): 'visible' | 'none' =>
     activeLayers.includes(layerId as never) ? 'visible' : 'none';
@@ -163,8 +198,12 @@ export function MapContainer() {
         longitude={viewport.longitude}
         zoom={viewport.zoom}
         onMove={handleMove}
+        onClick={handleIncidentClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        interactiveLayerIds={['incidents-circle']}
         style={{ width: '100%', height: '100%' }}
-        attributionControl={false}
+        attributionControl={true}
         maxZoom={18}
         minZoom={3}
       >
@@ -238,6 +277,25 @@ export function MapContainer() {
               layout={{ visibility: vis('borders') }}
             />
           </Source>
+        )}
+
+        {/* Incident detail popup */}
+        {popup && (
+          <Popup
+            latitude={popup.latitude}
+            longitude={popup.longitude}
+            onClose={() => setPopup(null)}
+            closeButton={false}
+            closeOnClick={false}
+            anchor="bottom"
+            offset={12}
+            className="[&>.maplibregl-popup-content]:!bg-transparent [&>.maplibregl-popup-content]:!p-0 [&>.maplibregl-popup-content]:!shadow-none [&>.maplibregl-popup-tip]:!border-t-[#1E293B]"
+          >
+            <IncidentPopup
+              properties={popup.properties}
+              onClose={() => setPopup(null)}
+            />
+          </Popup>
         )}
       </Map>
     </div>

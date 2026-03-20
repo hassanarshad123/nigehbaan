@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { Loader2 } from 'lucide-react';
 import { fetchCaseTypes } from '@/lib/api';
+import { useFilterStore } from '@/stores/filterStore';
 
 interface CaseTypeData {
   name: string;
@@ -40,9 +41,10 @@ function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
 }
 
 export function CaseTypeBreakdown() {
+  const selectedProvince = useFilterStore((s) => s.selectedProvince);
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ['case-types'],
-    queryFn: () => fetchCaseTypes(),
+    queryKey: ['case-types', selectedProvince],
+    queryFn: () => fetchCaseTypes(selectedProvince ?? undefined),
   });
 
   const chartData: CaseTypeData[] = React.useMemo(() => {

@@ -76,14 +76,22 @@ function ReportSuccessContent() {
           </div>
         </div>
 
-        {/* Back to map */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 rounded-md bg-[#06B6D4] px-5 py-2.5 text-sm font-medium text-[#0F172A] hover:bg-[#06B6D4]/90 transition-default"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Map
-        </Link>
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <Link
+            href="/report/track"
+            className="inline-flex items-center gap-2 rounded-md border border-[#334155] px-5 py-2.5 text-sm font-medium text-[#94A3B8] hover:text-[#F8FAFC] hover:border-[#06B6D4] transition-default"
+          >
+            Track Your Report
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-md bg-[#06B6D4] px-5 py-2.5 text-sm font-medium text-[#0F172A] hover:bg-[#06B6D4]/90 transition-default"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Map
+          </Link>
+        </div>
       </main>
 
       <Footer />

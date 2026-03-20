@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { ShieldCheck, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export function LoginForm() {
       setError('Invalid email or password');
       setLoading(false);
     } else {
-      window.location.reload();
+      router.refresh();
     }
   };
 

@@ -7,9 +7,10 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { RiskGauge } from '@/components/district/RiskGauge';
 import { DistrictStats } from '@/components/district/DistrictStats';
+import { ExportButton } from '@/components/ui/ExportButton';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { fetchDistrictProfile, fetchDistrictIncidents } from '@/lib/api';
+import { fetchDistrictProfile, fetchDistrictIncidents, fetchVulnerability } from '@/lib/api';
 
 const DistrictMap = dynamic(
   () => import('@/components/district/DistrictMap').then((mod) => mod.DistrictMap),
@@ -31,6 +32,11 @@ export default function DistrictPage({ params }: DistrictPageProps) {
   const { data: timeline, isLoading: timelineLoading } = useQuery({
     queryKey: ['district-incidents', pcode],
     queryFn: () => fetchDistrictIncidents(pcode, 10),
+  });
+
+  const { data: vulnerability } = useQuery({
+    queryKey: ['district-vulnerability', pcode],
+    queryFn: () => fetchVulnerability(pcode),
   });
 
   if (profileLoading) {
@@ -76,7 +82,7 @@ export default function DistrictPage({ params }: DistrictPageProps) {
 
       <main className="mx-auto max-w-screen-xl px-4 pt-16 pb-8">
         {/* Breadcrumb */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-[#94A3B8] hover:text-[#F8FAFC] transition-default"
@@ -84,6 +90,7 @@ export default function DistrictPage({ params }: DistrictPageProps) {
             <ArrowLeft className="h-4 w-4" />
             Back to Map
           </Link>
+          <ExportButton table="districts" params={{ district: pcode }} label="Export District Data" />
         </div>
 
         {/* District header */}
@@ -102,8 +109,10 @@ export default function DistrictPage({ params }: DistrictPageProps) {
             population={district.population ?? 0}
             incidentCount={district.incidents}
             kilnCount={district.kilnCount}
-            schoolCount={0}
             convictionRate={district.convictionRate ?? 0}
+            literacyRate={vulnerability?.literacyRate}
+            childLaborRate={vulnerability?.childLaborRate}
+            povertyHeadcount={vulnerability?.povertyHeadcount}
           />
         </div>
 

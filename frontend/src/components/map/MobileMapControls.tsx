@@ -31,7 +31,7 @@ export function MobileMapControls() {
         </button>
 
         {isOpen && (
-          <div className="absolute top-12 right-0 w-56 space-y-2 z-50">
+          <div className="absolute top-12 right-0 w-56 space-y-2 z-40">
             <LayerControls />
             <MapLegend />
           </div>

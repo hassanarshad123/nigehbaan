@@ -1,14 +1,30 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
-import { TrendChart } from '@/components/dashboard/TrendChart';
-import { ProvinceComparison } from '@/components/dashboard/ProvinceComparison';
-import { CaseTypeBreakdown } from '@/components/dashboard/CaseTypeBreakdown';
-import { ConvictionRates } from '@/components/dashboard/ConvictionRates';
 import { FilterControls } from '@/components/dashboard/FilterControls';
+import { ExportButton } from '@/components/ui/ExportButton';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+
+const TrendChart = dynamic(
+  () => import('@/components/dashboard/TrendChart').then((m) => m.TrendChart),
+  { ssr: false },
+);
+const ProvinceComparison = dynamic(
+  () => import('@/components/dashboard/ProvinceComparison').then((m) => m.ProvinceComparison),
+  { ssr: false },
+);
+const CaseTypeBreakdown = dynamic(
+  () => import('@/components/dashboard/CaseTypeBreakdown').then((m) => m.CaseTypeBreakdown),
+  { ssr: false },
+);
+const ConvictionRates = dynamic(
+  () => import('@/components/dashboard/ConvictionRates').then((m) => m.ConvictionRates),
+  { ssr: false },
+);
 
 export default function DashboardPage() {
   return (
@@ -17,13 +33,16 @@ export default function DashboardPage() {
 
       <main className="mx-auto max-w-screen-2xl px-4 pt-16 pb-8">
         {/* Page title */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#F8FAFC]">
-            Analytics Dashboard
-          </h1>
-          <p className="text-sm text-[#94A3B8] mt-1">
-            Pakistan child trafficking intelligence — aggregated from 12 data sources
-          </p>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-[#F8FAFC]">
+              Analytics Dashboard
+            </h1>
+            <p className="text-sm text-[#94A3B8] mt-1">
+              Pakistan child trafficking intelligence \u2014 aggregated from 32 data sources
+            </p>
+          </div>
+          <ExportButton table="incidents" label="Export Incidents" />
         </div>
 
         {/* Filter controls */}
@@ -36,12 +55,20 @@ export default function DashboardPage() {
           <SummaryCards />
         </div>
 
-        {/* Charts grid */}
+        {/* Charts grid — each wrapped in its own error boundary */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <TrendChart />
-          <ProvinceComparison />
-          <CaseTypeBreakdown />
-          <ConvictionRates />
+          <ErrorBoundary>
+            <TrendChart />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <ProvinceComparison />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <CaseTypeBreakdown />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <ConvictionRates />
+          </ErrorBoundary>
         </div>
       </main>
 
