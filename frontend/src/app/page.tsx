@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
 import { LiveCounter } from '@/components/map/LiveCounter';
 import { SearchBar } from '@/components/map/SearchBar';
-import { IncidentTimeline } from '@/components/map/IncidentTimeline';
 import { MobileMapControls } from '@/components/map/MobileMapControls';
 import { TimeSlider } from '@/components/map/TimeSlider';
 
@@ -39,10 +38,6 @@ export default function HomePage() {
           {/* Time slider */}
           <div className="w-full sm:w-96">
             <TimeSlider />
-          </div>
-          {/* Incident timeline */}
-          <div className="w-full sm:w-auto">
-            <IncidentTimeline />
           </div>
           {/* Live counter — left-aligned on desktop */}
           <div className="w-full sm:w-auto sm:self-start">
