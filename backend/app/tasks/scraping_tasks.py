@@ -343,7 +343,11 @@ def scrape_news_rss(self) -> dict:
             article_ids = await _save_news_articles(records, "rss_monitor")
             await _update_data_source("rss_monitor", len(records))
             _enqueue_ai_processing(article_ids)
-            return {"status": "completed", "articles_found": len(records), "saved": len(article_ids)}
+            return {
+                "status": "completed",
+                "articles_found": len(records),
+                "saved": len(article_ids),
+            }
         await _update_data_source("rss_monitor", 0)
         return {"status": "completed", "articles_found": 0}
 
@@ -369,7 +373,11 @@ def scrape_news_dawn(self) -> dict:
             article_ids = await _save_news_articles(records, "dawn")
             await _update_data_source("dawn", len(records))
             _enqueue_ai_processing(article_ids)
-            return {"status": "completed", "articles_found": len(records), "saved": len(article_ids)}
+            return {
+                "status": "completed",
+                "articles_found": len(records),
+                "saved": len(article_ids),
+            }
         await _update_data_source("dawn", 0)
         return {"status": "completed", "articles_found": 0}
 
@@ -395,7 +403,11 @@ def scrape_news_tribune(self) -> dict:
             article_ids = await _save_news_articles(records, "tribune")
             await _update_data_source("tribune", len(records))
             _enqueue_ai_processing(article_ids)
-            return {"status": "completed", "articles_found": len(records), "saved": len(article_ids)}
+            return {
+                "status": "completed",
+                "articles_found": len(records),
+                "saved": len(article_ids),
+            }
         await _update_data_source("tribune", 0)
         return {"status": "completed", "articles_found": 0}
 
@@ -421,7 +433,11 @@ def scrape_news_the_news(self) -> dict:
             article_ids = await _save_news_articles(records, "the_news")
             await _update_data_source("the_news", len(records))
             _enqueue_ai_processing(article_ids)
-            return {"status": "completed", "articles_found": len(records), "saved": len(article_ids)}
+            return {
+                "status": "completed",
+                "articles_found": len(records),
+                "saved": len(article_ids),
+            }
         await _update_data_source("the_news", 0)
         return {"status": "completed", "articles_found": 0}
 
@@ -447,7 +463,11 @@ def scrape_news_ary(self) -> dict:
             article_ids = await _save_news_articles(records, "ary_news")
             await _update_data_source("ary_news", len(records))
             _enqueue_ai_processing(article_ids)
-            return {"status": "completed", "articles_found": len(records), "saved": len(article_ids)}
+            return {
+                "status": "completed",
+                "articles_found": len(records),
+                "saved": len(article_ids),
+            }
         await _update_data_source("ary_news", 0)
         return {"status": "completed", "articles_found": 0}
 
@@ -473,7 +493,11 @@ def scrape_news_geo(self) -> dict:
             article_ids = await _save_news_articles(records, "geo_news")
             await _update_data_source("geo_news", len(records))
             _enqueue_ai_processing(article_ids)
-            return {"status": "completed", "articles_found": len(records), "saved": len(article_ids)}
+            return {
+                "status": "completed",
+                "articles_found": len(records),
+                "saved": len(article_ids),
+            }
         await _update_data_source("geo_news", 0)
         return {"status": "completed", "articles_found": 0}
 
@@ -493,7 +517,7 @@ def scrape_news_js(self) -> dict:
     Runs individual news scrapers that might need Playwright for JS-heavy sites.
     """
     logger.info("Starting JS news scrape")
-    results = {}
+    _results: dict = {}
 
     # Run each JS-capable scraper
     scrapers = [
@@ -847,7 +871,11 @@ def _make_news_task(module_path: str, class_name: str, source_name: str):
             article_ids = await _save_news_articles(records, source_name)
             await _update_data_source(source_name, len(records))
             _enqueue_ai_processing(article_ids)
-            return {"status": "completed", "articles_found": len(records), "saved": len(article_ids)}
+            return {
+                "status": "completed",
+                "articles_found": len(records),
+                "saved": len(article_ids),
+            }
         await _update_data_source(source_name, 0)
         return {"status": "completed", "articles_found": 0}
     return _run_async(_run())
@@ -857,198 +885,315 @@ def _make_news_task(module_path: str, class_name: str, source_name: str):
 # Phase 1: CSA scrapers
 # ---------------------------------------------------------------------------
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_sahil", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_sahil", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_sahil(self) -> dict:
     """Scrape Sahil Cruel Numbers annual reports."""
     logger.info("Scraping Sahil reports")
     return _make_stat_task("data.scrapers.government.sahil", "SahilScraper", "sahil")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_ecpat", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_ecpat", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_ecpat(self) -> dict:
     """Scrape ECPAT country assessment for Pakistan."""
     logger.info("Scraping ECPAT")
     return _make_stat_task("data.scrapers.international.ecpat", "ECPATScraper", "ecpat")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_pahchaan", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_pahchaan", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_pahchaan(self) -> dict:
     """Scrape Pahchaan hospital-based child protection data."""
     logger.info("Scraping Pahchaan")
     return _make_stat_task("data.scrapers.government.pahchaan", "PahchaanScraper", "pahchaan")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_unicef_pakistan", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_unicef_pakistan", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_unicef_pakistan(self) -> dict:
     """Scrape UNICEF Pakistan child protection data."""
     logger.info("Scraping UNICEF Pakistan")
-    return _make_stat_task("data.scrapers.international.unicef_pakistan", "UNICEFPakistanScraper", "unicef_pakistan")
+    return _make_stat_task(
+        "data.scrapers.international.unicef_pakistan",
+        "UNICEFPakistanScraper", "unicef_pakistan",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_ncrc", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_ncrc", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_ncrc(self) -> dict:
     """Scrape NCRC State of Children Report."""
     logger.info("Scraping NCRC")
     return _make_stat_task("data.scrapers.government.ncrc", "NCRCScraper", "ncrc")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_cpwb_punjab", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_cpwb_punjab", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_cpwb_punjab(self) -> dict:
     """Scrape CPWB Punjab helpline 1121 statistics."""
     logger.info("Scraping CPWB Punjab")
-    return _make_stat_task("data.scrapers.government.cpwb_punjab", "CPWBPunjabScraper", "cpwb_punjab")
+    return _make_stat_task(
+        "data.scrapers.government.cpwb_punjab", "CPWBPunjabScraper", "cpwb_punjab",
+    )
 
 
 # ---------------------------------------------------------------------------
 # Phase 2: Online Exploitation scrapers
 # ---------------------------------------------------------------------------
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_ncmec", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_ncmec", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_ncmec(self) -> dict:
     """Scrape NCMEC missing children reports."""
     logger.info("Scraping NCMEC")
     return _make_stat_task("data.scrapers.international.ncmec", "NCMECScraper", "ncmec")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_iwf_reports", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_iwf_reports", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_iwf_reports(self) -> dict:
     """Scrape IWF annual reports."""
     logger.info("Scraping IWF")
-    return _make_stat_task("data.scrapers.international.iwf_reports", "IWFReportsScraper", "iwf_reports")
+    return _make_stat_task(
+        "data.scrapers.international.iwf_reports", "IWFReportsScraper", "iwf_reports",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_meta_transparency", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_meta_transparency", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_meta_transparency(self) -> dict:
     """Scrape Meta transparency report data."""
     logger.info("Scraping Meta Transparency")
-    return _make_transparency_task("data.scrapers.international.meta_transparency", "MetaTransparencyScraper", "meta_transparency")
+    return _make_transparency_task(
+        "data.scrapers.international.meta_transparency",
+        "MetaTransparencyScraper", "meta_transparency",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_google_transparency", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_google_transparency", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_google_transparency(self) -> dict:
     """Scrape Google transparency report data."""
     logger.info("Scraping Google Transparency")
-    return _make_transparency_task("data.scrapers.international.google_transparency", "GoogleTransparencyScraper", "google_transparency")
+    return _make_transparency_task(
+        "data.scrapers.international.google_transparency",
+        "GoogleTransparencyScraper", "google_transparency",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_drf_newsletters", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_drf_newsletters", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_drf_newsletters(self) -> dict:
     """Scrape Digital Rights Foundation helpline stats."""
     logger.info("Scraping DRF newsletters")
-    return _make_stat_task("data.scrapers.government.drf_newsletters", "DRFNewslettersScraper", "drf_newsletters")
+    return _make_stat_task(
+        "data.scrapers.government.drf_newsletters", "DRFNewslettersScraper", "drf_newsletters",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_weprotect_gta", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_weprotect_gta", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_weprotect_gta(self) -> dict:
     """Scrape WeProtect Global Threat Assessment."""
     logger.info("Scraping WeProtect GTA")
-    return _make_stat_task("data.scrapers.international.weprotect_gta", "WeProtectGTAScraper", "weprotect_gta")
+    return _make_stat_task(
+        "data.scrapers.international.weprotect_gta", "WeProtectGTAScraper", "weprotect_gta",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_bytes_for_all", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_bytes_for_all", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_bytes_for_all(self) -> dict:
     """Scrape Bytes for All publications."""
     logger.info("Scraping Bytes for All")
-    return _make_stat_task("data.scrapers.government.bytes_for_all", "BytesForAllScraper", "bytes_for_all")
+    return _make_stat_task(
+        "data.scrapers.government.bytes_for_all", "BytesForAllScraper", "bytes_for_all",
+    )
 
 
 # ---------------------------------------------------------------------------
 # Phase 3: Child Labor scrapers
 # ---------------------------------------------------------------------------
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_ilostat_api", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_ilostat_api", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_ilostat_api(self) -> dict:
     """Scrape ILOSTAT child labor indicators."""
     logger.info("Scraping ILOSTAT API")
-    return _make_stat_task("data.scrapers.international.ilostat_api", "ILOSTATAPIScraper", "ilostat_api")
+    return _make_stat_task(
+        "data.scrapers.international.ilostat_api", "ILOSTATAPIScraper", "ilostat_api",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_dol_annual_report", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_dol_annual_report", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_dol_annual_report(self) -> dict:
     """Scrape US DOL annual child labor report for Pakistan."""
     logger.info("Scraping DOL Annual Report")
-    return _make_stat_task("data.scrapers.international.dol_annual_report", "DOLAnnualReportScraper", "dol_annual_report")
+    return _make_stat_task(
+        "data.scrapers.international.dol_annual_report",
+        "DOLAnnualReportScraper", "dol_annual_report",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_dol_tvpra", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_dol_tvpra", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_dol_tvpra(self) -> dict:
     """Scrape DOL TVPRA list of goods produced by child/forced labor."""
     logger.info("Scraping DOL TVPRA")
     return _make_stat_task("data.scrapers.international.dol_tvpra", "DOLTVPRAScraper", "dol_tvpra")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_labour_surveys", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_labour_surveys", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_labour_surveys(self) -> dict:
     """Scrape provincial child labour survey data."""
     logger.info("Scraping Labour Surveys")
-    return _make_stat_task("data.scrapers.government.labour_surveys", "LabourSurveysScraper", "labour_surveys")
+    return _make_stat_task(
+        "data.scrapers.government.labour_surveys", "LabourSurveysScraper", "labour_surveys",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_zenodo_kilns", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_zenodo_kilns", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_zenodo_kilns(self) -> dict:
     """Download Zenodo brick kiln dataset."""
     logger.info("Scraping Zenodo Kilns")
-    return _make_stat_task("data.scrapers.international.zenodo_kilns_scraper", "ZenodoKilnsScraper", "zenodo_kilns")
+    return _make_stat_task(
+        "data.scrapers.international.zenodo_kilns_scraper",
+        "ZenodoKilnsScraper", "zenodo_kilns",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_bllf", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_bllf", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_bllf(self) -> dict:
     """Scrape BLLF bonded labour freed statistics."""
     logger.info("Scraping BLLF")
     return _make_stat_task("data.scrapers.government.bllf", "BLLFScraper", "bllf")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_brick_kiln_dashboard", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_brick_kiln_dashboard", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_brick_kiln_dashboard(self) -> dict:
     """Scrape Urban Unit brick kiln dashboard."""
     logger.info("Scraping Brick Kiln Dashboard")
-    return _make_stat_task("data.scrapers.government.brick_kiln_dashboard", "BrickKilnDashboardScraper", "brick_kiln_dashboard")
+    return _make_stat_task(
+        "data.scrapers.government.brick_kiln_dashboard",
+        "BrickKilnDashboardScraper", "brick_kiln_dashboard",
+    )
 
 
 # ---------------------------------------------------------------------------
 # Phase 4: Cross-border scrapers
 # ---------------------------------------------------------------------------
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_ctdc_dataset", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_ctdc_dataset", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_ctdc_dataset(self) -> dict:
     """Scrape CTDC trafficking victim dataset."""
     logger.info("Scraping CTDC Dataset")
-    return _make_stat_task("data.scrapers.international.ctdc_dataset", "CTDCDatasetScraper", "ctdc_dataset")
+    return _make_stat_task(
+        "data.scrapers.international.ctdc_dataset", "CTDCDatasetScraper", "ctdc_dataset",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_brookings_bride", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=120)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_brookings_bride", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
 def scrape_brookings_bride(self) -> dict:
     """Scrape Brookings bride trafficking research."""
     logger.info("Scraping Brookings Bride")
-    return _make_stat_task("data.scrapers.international.brookings_bride", "BrookingsBrideScraper", "brookings_bride")
+    return _make_stat_task(
+        "data.scrapers.international.brookings_bride",
+        "BrookingsBrideScraper", "brookings_bride",
+    )
 
 
 # ---------------------------------------------------------------------------
 # Phase 5: Urdu news scrapers
 # ---------------------------------------------------------------------------
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_news_jang_urdu", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=60)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_news_jang_urdu", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=60,
+)
 def scrape_news_jang_urdu(self) -> dict:
     """Scrape Jang Urdu daily news."""
     logger.info("Scraping Jang Urdu")
     return _make_news_task("data.scrapers.news.jang_urdu", "JangUrduScraper", "jang_urdu")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_news_express_urdu", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=60)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_news_express_urdu", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=60,
+)
 def scrape_news_express_urdu(self) -> dict:
     """Scrape Express Urdu daily news."""
     logger.info("Scraping Express Urdu")
-    return _make_news_task("data.scrapers.news.express_urdu", "ExpressUrduScraper", "express_urdu")
+    return _make_news_task(
+        "data.scrapers.news.express_urdu", "ExpressUrduScraper", "express_urdu",
+    )
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_news_bbc_urdu", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=60)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_news_bbc_urdu", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=60,
+)
 def scrape_news_bbc_urdu(self) -> dict:
     """Scrape BBC Urdu news."""
     logger.info("Scraping BBC Urdu")
     return _make_news_task("data.scrapers.news.bbc_urdu", "BBCUrduScraper", "bbc_urdu")
 
 
-@celery_app.task(name="app.tasks.scraping_tasks.scrape_news_geo_urdu", bind=True, max_retries=3, autoretry_for=(Exception,), retry_backoff=60)
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_news_geo_urdu", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=60,
+)
 def scrape_news_geo_urdu(self) -> dict:
     """Scrape Geo Urdu news."""
     logger.info("Scraping Geo Urdu")

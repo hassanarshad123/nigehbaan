@@ -88,7 +88,7 @@ class SahilParser:
     ) -> list[dict[str, Any]]:
         """Parse a single Sahil annual report PDF."""
         try:
-            import pdfplumber
+            import pdfplumber  # noqa: F401
         except ImportError:
             logger.error("pdfplumber not installed")
             return []
@@ -116,10 +116,6 @@ class SahilParser:
 
         records: list[dict[str, Any]] = []
         headers = [h.strip().lower() if h else "" for h in table[0]]
-
-        # Detect if this is a province breakdown table or summary table
-        has_province = any("province" in h or "region" in h for h in headers)
-        has_category = any("category" in h or "type" in h or "offence" in h or "crime" in h for h in headers)
 
         for row in table[1:]:
             if not row or all(not cell for cell in row):

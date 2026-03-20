@@ -99,7 +99,6 @@ class TestBrickKilnDashboardScraper:
             "data.scrapers.base_scraper.RAW_DATA_DIR", raw_data_dir
         )
 
-        base_url = "https://dashboards.urbanunit.gov.pk/brick_kilns/"
         respx.get(url__regex=r".*").respond(200, text=MOCK_DASHBOARD_HTML)
 
         scraper = BrickKilnDashboardScraper()

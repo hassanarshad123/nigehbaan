@@ -12,7 +12,6 @@ Priority: P2 — Key civil society data on bonded child labor
 
 from datetime import datetime, timezone
 from typing import Any
-from urllib.parse import urlparse
 
 import logging
 import re

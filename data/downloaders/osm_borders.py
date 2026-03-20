@@ -245,7 +245,6 @@ def extract_border_crossings(
             # Extract name from various possible columns
             name = ""
             for name_col in ("name", "name_en", "nam", "label"):
-                mapped = col_map.get(name_col, name_col)
                 original_col = None
                 for orig, lower in col_map.items():
                     if lower == name_col:

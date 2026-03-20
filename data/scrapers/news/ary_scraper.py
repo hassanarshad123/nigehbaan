@@ -17,11 +17,9 @@ Priority: P1 — Major TV news network with active web presence
 
 from datetime import datetime, timezone
 from typing import Any
-from urllib.parse import quote_plus
 
 import asyncio
 import logging
-import re
 
 import feedparser
 from bs4 import BeautifulSoup

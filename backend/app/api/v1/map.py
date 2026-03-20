@@ -3,14 +3,14 @@
 import json
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models.boundaries import Boundary
-from app.models.incidents import Incident
-from app.models.brick_kilns import BrickKiln
 from app.models.border_crossings import BorderCrossing
+from app.models.boundaries import Boundary
+from app.models.brick_kilns import BrickKiln
+from app.models.incidents import Incident
 from app.models.trafficking_routes import TraffickingRoute
 from app.models.vulnerability import VulnerabilityIndicator
 from app.schemas.common import GeoJSONFeature, GeoJSONFeatureCollection, GeoJSONGeometry
@@ -21,7 +21,10 @@ router = APIRouter()
 
 @router.get("/boundaries", response_model=GeoJSONFeatureCollection)
 async def get_boundaries(
-    level: int = Query(default=2, ge=0, le=5, description="Admin level (0=country,1=province,2=district,3=tehsil)"),
+    level: int = Query(
+        default=2, ge=0, le=5,
+        description="Admin level (0=country,1=province,2=district,3=tehsil)",
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> GeoJSONFeatureCollection:
     """Return administrative boundaries at the requested admin level as GeoJSON."""

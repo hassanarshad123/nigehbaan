@@ -3,7 +3,6 @@
 import json
 from pathlib import Path
 
-import pytest
 
 from data.downloaders.hdx_boundaries import validate_geojson
 

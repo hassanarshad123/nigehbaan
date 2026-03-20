@@ -5,9 +5,10 @@ Revises: 001
 Create Date: 2026-03-20
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = "002"
 down_revision = "001"
@@ -47,7 +48,9 @@ def upgrade() -> None:
         ),
     )
     op.create_index("ix_statistical_reports_source_name", "statistical_reports", ["source_name"])
-    op.create_index("ix_statistical_reports_district_pcode", "statistical_reports", ["district_pcode"])
+    op.create_index(
+        "ix_statistical_reports_district_pcode", "statistical_reports", ["district_pcode"]
+    )
 
     op.create_table(
         "transparency_reports",

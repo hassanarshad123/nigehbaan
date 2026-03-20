@@ -1,8 +1,8 @@
 """Trafficking route model."""
 
+from geoalchemy2 import Geometry
 from sqlalchemy import Column, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
-from geoalchemy2 import Geometry
 
 from app.models.base import Base
 

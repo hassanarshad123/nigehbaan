@@ -1,9 +1,8 @@
 """District detail and listing API endpoints."""
 
-import json
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -50,21 +49,21 @@ async def list_districts(
         .subquery()
     )
 
-    ParentBoundary = aliased(Boundary)
+    parent_boundary = aliased(Boundary)
 
     stmt = (
         select(
             Boundary.pcode,
             Boundary.name_en,
             Boundary.name_ur,
-            ParentBoundary.name_en.label("province_name"),
+            parent_boundary.name_en.label("province_name"),
             incident_sq.c.incident_count,
             vuln_sq.c.trafficking_risk_score,
         )
         .where(Boundary.admin_level == 2)
         .outerjoin(incident_sq, Boundary.pcode == incident_sq.c.district_pcode)
         .outerjoin(vuln_sq, Boundary.pcode == vuln_sq.c.district_pcode)
-        .outerjoin(ParentBoundary, Boundary.parent_pcode == ParentBoundary.pcode)
+        .outerjoin(parent_boundary, Boundary.parent_pcode == parent_boundary.pcode)
         .order_by(Boundary.name_en)
     )
 

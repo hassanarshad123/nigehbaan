@@ -1,7 +1,7 @@
 """Brick kiln geospatial model."""
 
-from sqlalchemy import Column, Float, ForeignKey, Integer, String
 from geoalchemy2 import Geometry
+from sqlalchemy import Column, Float, ForeignKey, Integer, String
 
 from app.models.base import Base
 

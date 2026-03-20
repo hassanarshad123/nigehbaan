@@ -8,13 +8,6 @@ from app.schemas.common import (
     GeoJSONProperties,
     PaginationParams,
 )
-from app.schemas.map import (
-    BorderCrossingPoint,
-    BoundaryResponse,
-    IncidentMapPoint,
-    KilnMapPoint,
-    RouteResponse,
-)
 from app.schemas.dashboard import (
     CaseTypeBreakdownItem,
     ConvictionRatePoint,
@@ -22,11 +15,18 @@ from app.schemas.dashboard import (
     ProvinceComparisonItem,
     TrendDataPoint,
 )
-from app.schemas.reports import ReportCreate, ReportResponse, ReportStatus
 from app.schemas.districts import DistrictListItem, DistrictProfile, DistrictVulnerability
-from app.schemas.legal import ConvictionRateResponse, JudgmentResponse, JudgmentSearchParams
-from app.schemas.search import SearchResult
 from app.schemas.export import ExportParams
+from app.schemas.legal import ConvictionRateResponse, JudgmentResponse, JudgmentSearchParams
+from app.schemas.map import (
+    BorderCrossingPoint,
+    BoundaryResponse,
+    IncidentMapPoint,
+    KilnMapPoint,
+    RouteResponse,
+)
+from app.schemas.reports import ReportCreate, ReportResponse, ReportStatus
+from app.schemas.search import SearchResult
 
 __all__ = [
     "APIResponse",

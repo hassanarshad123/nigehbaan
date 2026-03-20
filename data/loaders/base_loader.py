@@ -6,9 +6,8 @@ and upsert into the database using SQLAlchemy async sessions.
 
 import json
 import csv
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 import logging
 

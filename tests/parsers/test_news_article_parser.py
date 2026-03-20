@@ -1,8 +1,7 @@
 """Tests for the news article NER parser."""
 
-import pytest
 
-from data.parsers.news_article_parser import NewsArticleParser, CRIME_KEYWORDS
+from data.parsers.news_article_parser import NewsArticleParser
 
 
 class TestNewsArticleParser:

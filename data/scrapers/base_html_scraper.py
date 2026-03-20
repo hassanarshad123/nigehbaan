@@ -5,7 +5,6 @@ link extraction, and province name normalization for Pakistan.
 """
 
 import re
-from typing import Any
 
 import logging
 

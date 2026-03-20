@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 # Attempt to import Playwright; it is an optional heavy dependency
 try:
-    from playwright.async_api import async_playwright, Browser, Page
+    from playwright.async_api import async_playwright, Browser, Page  # noqa: F401
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False

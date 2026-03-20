@@ -118,8 +118,6 @@ class ECPATScraper(BasePDFReportScraper):
             if len(table) < 2:
                 continue
 
-            headers = [h.strip().lower() if h else "" for h in table[0]]
-
             for row in table[1:]:
                 if not row or all(not cell.strip() for cell in row if cell):
                     continue

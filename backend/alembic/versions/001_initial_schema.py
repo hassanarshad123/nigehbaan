@@ -6,10 +6,11 @@ Create Date: 2026-03-19
 """
 from typing import Sequence, Union
 
-from alembic import op
+import geoalchemy2
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-import geoalchemy2
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "001"

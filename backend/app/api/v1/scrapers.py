@@ -3,12 +3,12 @@
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.news_articles import DataSource, NewsArticle
-from app.schemas.scrapers import ScraperStatus, ScrapersSummary
+from app.schemas.scrapers import ScrapersSummary, ScraperStatus
 
 router = APIRouter()
 

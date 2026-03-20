@@ -1,6 +1,5 @@
 """Tests for the court judgment PDF parser."""
 
-import pytest
 
 from data.parsers.court_judgment_parser import CourtJudgmentParser
 

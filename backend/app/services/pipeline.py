@@ -9,10 +9,9 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
 
 from app.config import settings
-from app.services.ai_extractor import AIExtractor, ExtractionResult
+from app.services.ai_extractor import AIExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -69,11 +68,12 @@ class ArticleProcessingPipeline:
         Returns:
             ProcessingResult with the outcome and any created incident ID.
         """
-        from app.database import async_session_factory
-        from app.models.news_articles import NewsArticle
-        from app.models.incidents import Incident
-        from app.services.geocoder import PakistanGeocoder
         from sqlalchemy import select
+
+        from app.database import async_session_factory
+        from app.models.incidents import Incident
+        from app.models.news_articles import NewsArticle
+        from app.services.geocoder import PakistanGeocoder
 
         extractor = self._get_extractor()
 
@@ -228,7 +228,12 @@ class ArticleProcessingPipeline:
 
             await session.commit()
 
-            stage = "incident_created" if geometry else "geocoded" if location_detail else "extracted"
+            if geometry:
+                stage = "incident_created"
+            elif location_detail:
+                stage = "geocoded"
+            else:
+                stage = "extracted"
 
             return ProcessingResult(
                 article_id=article_id,

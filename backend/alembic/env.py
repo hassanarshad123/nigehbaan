@@ -6,8 +6,9 @@ import sys
 from logging.config import fileConfig
 from pathlib import Path
 
-from alembic import context
 from sqlalchemy import create_engine, pool
+
+from alembic import context
 
 # ---------------------------------------------------------------------------
 # Ensure the backend package is importable
@@ -15,8 +16,8 @@ from sqlalchemy import create_engine, pool
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # Import all models so their metadata is registered on Base
-from app.models import Base  # noqa: E402
 from app.config import settings  # noqa: E402
+from app.models import Base  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Alembic Config

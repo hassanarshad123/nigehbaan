@@ -3,7 +3,6 @@
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session_factory

@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from geoalchemy2 import Geometry
 from sqlalchemy import (
     Boolean,
     Column,
@@ -13,7 +14,6 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from geoalchemy2 import Geometry
 
 from app.models.base import Base
 

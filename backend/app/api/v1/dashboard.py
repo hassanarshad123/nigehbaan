@@ -3,12 +3,12 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func, distinct
+from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models.incidents import Incident
 from app.models.boundaries import Boundary
+from app.models.incidents import Incident
 from app.models.news_articles import DataSource
 from app.models.tip_report import TipReportAnnual
 from app.schemas.dashboard import (
@@ -25,7 +25,9 @@ router = APIRouter()
 @router.get("/trends", response_model=list[TrendDataPoint])
 async def get_trends(
     source: str | None = Query(default=None, description="Filter by source_type"),
-    years: str | None = Query(default=None, description="Comma-separated years, e.g. 2018,2019,2020"),
+    years: str | None = Query(
+        default=None, description="Comma-separated years, e.g. 2018,2019,2020"
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> list[TrendDataPoint]:
     """Return incident count trends over time."""
@@ -66,20 +68,20 @@ async def get_province_comparison(
     """
     from sqlalchemy.orm import aliased
 
-    DistrictBoundary = aliased(Boundary)
-    ProvinceBoundary = aliased(Boundary)
+    district_boundary = aliased(Boundary)
+    province_boundary = aliased(Boundary)
 
     stmt = select(
-        ProvinceBoundary.pcode.label("province_pcode"),
+        province_boundary.pcode.label("province_pcode"),
         func.count().label("count"),
-        ProvinceBoundary.name_en,
-        ProvinceBoundary.population_total,
+        province_boundary.name_en,
+        province_boundary.population_total,
     ).select_from(Incident).join(
-        DistrictBoundary,
-        Incident.district_pcode == DistrictBoundary.pcode,
+        district_boundary,
+        Incident.district_pcode == district_boundary.pcode,
     ).join(
-        ProvinceBoundary,
-        DistrictBoundary.parent_pcode == ProvinceBoundary.pcode,
+        province_boundary,
+        district_boundary.parent_pcode == province_boundary.pcode,
     ).where(
         Incident.district_pcode.isnot(None),
     )
@@ -88,9 +90,9 @@ async def get_province_comparison(
         stmt = stmt.where(Incident.year == year)
 
     stmt = stmt.group_by(
-        ProvinceBoundary.pcode,
-        ProvinceBoundary.name_en,
-        ProvinceBoundary.population_total,
+        province_boundary.pcode,
+        province_boundary.name_en,
+        province_boundary.population_total,
     ).order_by(func.count().desc())
 
     result = await db.execute(stmt)

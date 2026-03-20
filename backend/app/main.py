@@ -1,15 +1,14 @@
 """Nigehbaan API — FastAPI application entry point."""
 
-from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
-from typing import Any
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.router import v1_router
 from app.config import settings
 from app.database import engine
-from app.api.v1.router import v1_router
 
 
 @asynccontextmanager

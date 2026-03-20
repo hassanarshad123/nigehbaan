@@ -11,7 +11,6 @@ Priority: P2
 
 from datetime import datetime, timezone
 from typing import Any
-from urllib.parse import urlparse
 import re
 
 import logging

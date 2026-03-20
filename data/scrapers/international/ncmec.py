@@ -101,7 +101,6 @@ class NCMECScraper(BasePDFReportScraper):
             if len(table) < 2:
                 continue
 
-            headers = table[0]
             for row in table[1:]:
                 if not self._row_is_relevant(row) and not self._row_mentions_pakistan(row):
                     continue

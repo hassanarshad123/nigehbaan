@@ -1,14 +1,13 @@
 """Tests for the base scraper infrastructure."""
 
 import json
-from pathlib import Path
 from typing import Any
 
 import pytest
 import httpx
 import respx
 
-from data.scrapers.base_scraper import BaseScraper, TRAFFICKING_KEYWORDS
+from data.scrapers.base_scraper import BaseScraper
 
 
 # Concrete implementation for testing
@@ -100,7 +99,6 @@ class TestBaseScraper:
     async def test_save_raw_json(self, tmp_path):
         scraper = MockScraper()
         # Override the raw data dir
-        original_get_raw_dir = scraper.get_raw_dir
         scraper.get_raw_dir = lambda: tmp_path / "test_scraper"
         (tmp_path / "test_scraper").mkdir(parents=True)
 

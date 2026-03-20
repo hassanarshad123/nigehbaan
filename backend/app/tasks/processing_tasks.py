@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
-from typing import Any
+from datetime import datetime
 
-from app.tasks.celery_app import celery_app
 from app.config import settings
+from app.tasks.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +58,8 @@ def process_article_ai(self, article_id: int) -> dict:
 
     async def _run():
         from app.database import async_session_factory
-        from app.models.news_articles import NewsArticle
         from app.models.incidents import Incident
+        from app.models.news_articles import NewsArticle
         from app.services.ai_extractor import AIExtractor
         from app.services.geocoder import PakistanGeocoder
 
@@ -100,11 +99,14 @@ def process_article_ai(self, article_id: int) -> dict:
                 }
 
             # 3. AI extraction via OpenAI (detect Urdu sources)
-            URDU_SOURCES = {"jang_urdu", "express_urdu", "bbc_urdu", "geo_urdu"}
-            is_urdu = article.source_name in URDU_SOURCES
+            urdu_sources = {"jang_urdu", "express_urdu", "bbc_urdu", "geo_urdu"}
+            is_urdu = article.source_name in urdu_sources
 
             if is_urdu:
-                logger.info("Urdu extraction for article %d (source: %s)", article_id, article.source_name)
+                logger.info(
+                    "Urdu extraction for article %d (source: %s)",
+                    article_id, article.source_name,
+                )
                 extraction = await extractor.extract_from_urdu(
                     title=title,
                     text=text,
@@ -157,7 +159,10 @@ def process_article_ai(self, article_id: int) -> dict:
                     )
                 )
                 if existing.scalar_one_or_none() is not None:
-                    logger.info("Incident already exists for article %d, skipping creation", article_id)
+                    logger.info(
+                        "Incident already exists for article %d, skipping creation",
+                        article_id,
+                    )
                     await session.commit()
                     return {
                         "status": "completed",
@@ -180,7 +185,6 @@ def process_article_ai(self, article_id: int) -> dict:
 
                 # Determine location info
                 district_pcode = None
-                province_pcode = None
                 location_detail = None
                 geometry = None
 
@@ -207,10 +211,16 @@ def process_article_ai(self, article_id: int) -> dict:
                     source_type="news",
                     source_id=str(article.id),
                     source_url=article.url,
-                    incident_date=incident_date or (article.published_date if article.published_date else None),
+                    incident_date=incident_date or article.published_date or None,
                     report_date=article.published_date,
-                    year=(incident_date or article.published_date).year if (incident_date or article.published_date) else None,
-                    month=(incident_date or article.published_date).month if (incident_date or article.published_date) else None,
+                    year=(
+                        (incident_date or article.published_date).year
+                        if (incident_date or article.published_date) else None
+                    ),
+                    month=(
+                        (incident_date or article.published_date).month
+                        if (incident_date or article.published_date) else None
+                    ),
                     district_pcode=district_pcode,
                     location_detail=location_detail,
                     geometry=geometry,
@@ -259,9 +269,10 @@ def process_pdf(self, s3_key: str) -> dict:
     logger.info("Processing PDF: %s", s3_key)
 
     async def _run():
-        import boto3
         import tempfile
         from pathlib import Path
+
+        import boto3
 
         try:
             import pdfplumber
@@ -338,10 +349,11 @@ def geocode_incidents(self, batch_size: int = 100) -> dict:
     logger.info("Geocoding incidents (batch_size=%d)", batch_size)
 
     async def _run():
+        from sqlalchemy import select
+
         from app.database import async_session_factory
         from app.models.incidents import Incident
         from app.services.geocoder import PakistanGeocoder
-        from sqlalchemy import select
 
         geocoder = PakistanGeocoder(
             gazetteer_path="data/config/gazetteer/pakistan_districts.json"
@@ -401,10 +413,11 @@ def calculate_risk_scores(self) -> dict:
     logger.info("Calculating risk scores")
 
     async def _run():
+        from sqlalchemy import select
+
         from app.database import async_session_factory
         from app.models.vulnerability import VulnerabilityIndicator
         from app.services.risk_scorer import RiskScorer
-        from sqlalchemy import select, func
 
         scorer = RiskScorer()
         districts_scored = 0
@@ -462,10 +475,11 @@ def run_nlp_pipeline(self, article_id: int) -> dict:
     logger.info("Running NLP pipeline on article %d", article_id)
 
     async def _run():
+        from sqlalchemy import select
+
         from app.database import async_session_factory
         from app.models.news_articles import NewsArticle
         from app.services.nlp_pipeline import TraffickingNLPPipeline
-        from sqlalchemy import select
 
         pipeline = TraffickingNLPPipeline()
 
@@ -522,11 +536,12 @@ def process_court_judgment(self, judgment_id: int) -> dict:
     logger.info("Processing court judgment %d", judgment_id)
 
     async def _run():
+        from sqlalchemy import select
+
         from app.database import async_session_factory
         from app.models.court_judgments import CourtJudgment
         from app.models.incidents import Incident
         from app.services.geocoder import PakistanGeocoder
-        from sqlalchemy import select
 
         async with async_session_factory() as session:
             result = await session.execute(
@@ -635,11 +650,12 @@ def update_vulnerability_indicators(self) -> dict:
     logger.info("Updating vulnerability indicators")
 
     async def _run():
+        from sqlalchemy import func, select
+
         from app.database import async_session_factory
-        from app.models.vulnerability import VulnerabilityIndicator
         from app.models.incidents import Incident
         from app.models.statistical_reports import StatisticalReport
-        from sqlalchemy import select, func
+        from app.models.vulnerability import VulnerabilityIndicator
 
         districts_updated = 0
 

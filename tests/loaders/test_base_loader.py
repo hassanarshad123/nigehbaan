@@ -1,7 +1,6 @@
 """Tests for the base loader."""
 
 import json
-from pathlib import Path
 
 import pytest
 
@@ -53,6 +52,7 @@ class TestBaseLoader:
         assert loader.transform({"id": 1, "value": "a", "valid": True}) is not None
         assert loader.transform({"id": 1, "value": "a"}) is None
 
+    @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_run_pipeline(self, tmp_path):
         source_dir = tmp_path / "test_source"

@@ -147,43 +147,56 @@ class ExtractionResult:
 # OpenAI extraction prompt
 # ---------------------------------------------------------------------------
 
-_SYSTEM_PROMPT = """You are a child protection intelligence analyst for Pakistan. Extract structured information from news articles about incidents involving children.
+_SYSTEM_PROMPT = (
+    "You are a child protection intelligence analyst for Pakistan."
+    " Extract structured information from news articles about incidents involving children.\n"
+    "\n"
+    "You MUST respond with valid JSON matching this schema:\n"
+    "{\n"
+    '  "is_relevant": boolean,\n'
+    '  "confidence": float (0.0-1.0),\n'
+    '  "incident_type": string | null,\n'
+    '  "sub_type": string | null,\n'
+    '  "victim_count": integer | null,\n'
+    '  "victim_age_min": integer | null,\n'
+    '  "victim_age_max": integer | null,\n'
+    '  "victim_gender": "male" | "female" | "mixed" | "unknown" | null,\n'
+    '  "perpetrator_type": string | null,\n'
+    '  "ppc_sections": [string],\n'
+    '  "incident_date": "YYYY-MM-DD" | null,\n'
+    '  "locations": [{"name": string, "district": string|null, "province": string|null}]\n'
+    "}\n"
+    "\n"
+    "Valid incident_type values: kidnapping, child_trafficking, sexual_abuse,"
+    " sexual_exploitation, online_exploitation, child_labor, bonded_labor,"
+    " child_marriage, child_murder, honor_killing, begging_ring, organ_trafficking,"
+    " missing, physical_abuse, child_pornography, abandonment, medical_negligence, other\n"
+    "\n"
+    "Valid sub_type values for child_labor:"
+    " brick_kiln, domestic_work, factory, agriculture, street_vending, auto_workshop\n"
+    "Valid sub_type values for sexual_abuse: rape, sodomy, incest, molestation\n"
+    "Valid sub_type values for online_exploitation: csam, grooming, sextortion\n"
+    "Valid sub_type values for child_murder: infanticide\n"
+    "\n"
+    "perpetrator_type values:"
+    " family, neighbor, teacher, employer, stranger, gang, online_predator, institution, unknown\n"
+    "\n"
+    "Pakistan provinces:"
+    " Punjab, Sindh, Khyber Pakhtunkhwa, Balochistan, Islamabad, AJK, Gilgit-Baltistan\n"
+    "\n"
+    "If the article is NOT about a child protection issue,"
+    " set is_relevant=false and leave other fields null."
+)
 
-You MUST respond with valid JSON matching this schema:
-{
-  "is_relevant": boolean,
-  "confidence": float (0.0-1.0),
-  "incident_type": string | null,
-  "sub_type": string | null,
-  "victim_count": integer | null,
-  "victim_age_min": integer | null,
-  "victim_age_max": integer | null,
-  "victim_gender": "male" | "female" | "mixed" | "unknown" | null,
-  "perpetrator_type": string | null,
-  "ppc_sections": [string],
-  "incident_date": "YYYY-MM-DD" | null,
-  "locations": [{"name": string, "district": string|null, "province": string|null}]
-}
-
-Valid incident_type values: kidnapping, child_trafficking, sexual_abuse, sexual_exploitation, online_exploitation, child_labor, bonded_labor, child_marriage, child_murder, honor_killing, begging_ring, organ_trafficking, missing, physical_abuse, child_pornography, abandonment, medical_negligence, other
-
-Valid sub_type values for child_labor: brick_kiln, domestic_work, factory, agriculture, street_vending, auto_workshop
-Valid sub_type values for sexual_abuse: rape, sodomy, incest, molestation
-Valid sub_type values for online_exploitation: csam, grooming, sextortion
-Valid sub_type values for child_murder: infanticide
-
-perpetrator_type values: family, neighbor, teacher, employer, stranger, gang, online_predator, institution, unknown
-
-Pakistan provinces: Punjab, Sindh, Khyber Pakhtunkhwa, Balochistan, Islamabad, AJK, Gilgit-Baltistan
-
-If the article is NOT about a child protection issue, set is_relevant=false and leave other fields null."""
-
-_URDU_SYSTEM_PROMPT = _SYSTEM_PROMPT + """
-
-The article is in Urdu. First translate to English mentally, then extract. Also provide an english_translation field with a concise English translation of the article (max 500 words).
-
-Add to the JSON schema:
-  "english_translation": string"""
+_URDU_SYSTEM_PROMPT = _SYSTEM_PROMPT + (
+    "\n\n"
+    "The article is in Urdu. First translate to English mentally, then extract."
+    " Also provide an english_translation field with a concise English"
+    " translation of the article (max 500 words).\n"
+    "\n"
+    "Add to the JSON schema:\n"
+    '  "english_translation": string'
+)
 
 
 # ---------------------------------------------------------------------------

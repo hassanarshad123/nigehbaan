@@ -3,7 +3,7 @@
 import pytest
 import respx
 
-from data.scrapers.international.worldbank_api import WorldBankAPIScraper, INDICATORS
+from data.scrapers.international.worldbank_api import WorldBankAPIScraper
 
 
 class TestWorldBankAPIScraper:

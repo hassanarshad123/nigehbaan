@@ -212,10 +212,11 @@ def reprocess_all_articles(self) -> dict:
     logger.info("Starting reprocessing of all articles")
 
     async def _run():
+        from sqlalchemy import select
+
         from app.database import async_session_factory
         from app.models.news_articles import NewsArticle
         from app.tasks.processing_tasks import process_article_ai
-        from sqlalchemy import select
 
         async with async_session_factory() as session:
             result = await session.execute(

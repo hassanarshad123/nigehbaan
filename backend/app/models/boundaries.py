@@ -1,5 +1,6 @@
 """Administrative boundary and district name variant models."""
 
+from geoalchemy2 import Geometry
 from sqlalchemy import (
     Column,
     Float,
@@ -8,7 +9,6 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from geoalchemy2 import Geometry
 
 from app.models.base import Base
 
@@ -19,7 +19,10 @@ class Boundary(Base):
     __tablename__ = "boundaries"
 
     id: int = Column(Integer, primary_key=True, autoincrement=True)
-    admin_level: int = Column(Integer, nullable=False, comment="1=country,2=province,3=division,4=district,5=tehsil")
+    admin_level: int = Column(
+        Integer, nullable=False,
+        comment="1=country,2=province,3=division,4=district,5=tehsil",
+    )
     name_en: str = Column(String(255), nullable=False)
     name_ur: str | None = Column(String(255), nullable=True)
     pcode: str = Column(String(20), unique=True, nullable=False, index=True)

@@ -1,7 +1,7 @@
 """Border crossing model."""
 
-from sqlalchemy import Boolean, Column, Float, Integer, String, Text
 from geoalchemy2 import Geometry
+from sqlalchemy import Boolean, Column, Float, Integer, String, Text
 
 from app.models.base import Base
 

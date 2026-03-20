@@ -214,15 +214,6 @@ class BrickKilnDashboardScraper(BaseAPIScraper):
         """Extract records from a dictionary response."""
         records: list[dict[str, Any]] = []
 
-        # Look for known field patterns
-        interesting_keys = [
-            "total_kilns", "kilns", "total",
-            "children", "total_children", "child_workers",
-            "enrolled", "enrollment", "school_enrollment",
-            "districts", "total_districts",
-            "workers", "total_workers",
-        ]
-
         for key, value in data.items():
             key_lower = key.lower().replace("-", "_").replace(" ", "_")
 

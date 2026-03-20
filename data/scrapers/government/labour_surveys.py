@@ -11,7 +11,6 @@ Priority: P2 — National statistical authority data
 """
 
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 import logging

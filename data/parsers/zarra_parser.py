@@ -29,7 +29,7 @@ class ZARRAParser:
     ) -> dict[str, Any]:
         """Parse a single ZARRA report PDF."""
         try:
-            import pdfplumber
+            import pdfplumber  # noqa: F401
         except ImportError:
             logger.error("pdfplumber not installed")
             return {}

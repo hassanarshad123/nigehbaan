@@ -12,7 +12,6 @@ Priority: P2 — Key research reference on cross-border trafficking
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urljoin
 
 import logging
 import re

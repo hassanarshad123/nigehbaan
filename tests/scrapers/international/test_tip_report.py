@@ -1,6 +1,5 @@
 """Tests for the TIP Report scraper."""
 
-import pytest
 
 from data.scrapers.international.tip_report import TIPReportScraper
 

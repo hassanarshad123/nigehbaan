@@ -144,8 +144,6 @@ class UNHCRAPIScraper(BaseScraper):
 
     async def scrape(self) -> list[dict[str, Any]]:
         """Execute the UNHCR API scraping pipeline."""
-        current_year = datetime.now().year
-
         population_task = self.fetch_population_data()
         demographics_task = self.fetch_demographics()
         settlements_task = self.fetch_settlement_locations()

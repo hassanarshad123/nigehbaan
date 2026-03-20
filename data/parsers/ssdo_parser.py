@@ -24,7 +24,7 @@ class SSDOParser:
     def parse_report(self, pdf_path: Path) -> dict[str, Any]:
         """Parse a single SSDO report PDF."""
         try:
-            import pdfplumber
+            import pdfplumber  # noqa: F401
         except ImportError:
             logger.error("pdfplumber not installed")
             return {}
@@ -183,9 +183,6 @@ class SSDOParser:
                 )
                 for match in rate_pattern.finditer(full_text):
                     rate_val = float(match.group(1)) / 100.0
-                    # Get context for category
-                    start = max(0, match.start() - 100)
-                    context = full_text[start:match.start()]
                     rates[f"context_{match.start()}"] = rate_val
 
         except Exception as exc:

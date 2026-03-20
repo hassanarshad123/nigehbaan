@@ -57,7 +57,8 @@ celery_app.conf.beat_schedule = {
     },
     "ctdc_updater": {
         "task": "app.tasks.scraping_tasks.update_ctdc",
-        "schedule": crontab(minute=0, hour=5, day_of_month=1, month_of_year="1,4,7,10"),  # quarterly
+        # quarterly
+        "schedule": crontab(minute=0, hour=5, day_of_month=1, month_of_year="1,4,7,10"),
         "options": {"queue": "scraping"},
     },
     # ── Courts ────────────────────────────────────────────────────────
@@ -151,12 +152,14 @@ celery_app.conf.beat_schedule = {
     },
     "pahchaan": {
         "task": "app.tasks.scraping_tasks.scrape_pahchaan",
-        "schedule": crontab(minute=0, hour=4, day_of_month=1, month_of_year="1,4,7,10"),  # quarterly
+        # quarterly
+        "schedule": crontab(minute=0, hour=4, day_of_month=1, month_of_year="1,4,7,10"),
         "options": {"queue": "scraping"},
     },
     "unicef_pakistan": {
         "task": "app.tasks.scraping_tasks.scrape_unicef_pakistan",
-        "schedule": crontab(minute=30, hour=4, day_of_month=1, month_of_year="1,4,7,10"),  # quarterly
+        # quarterly
+        "schedule": crontab(minute=30, hour=4, day_of_month=1, month_of_year="1,4,7,10"),
         "options": {"queue": "scraping"},
     },
     "ncrc": {
@@ -166,7 +169,8 @@ celery_app.conf.beat_schedule = {
     },
     "cpwb_punjab": {
         "task": "app.tasks.scraping_tasks.scrape_cpwb_punjab",
-        "schedule": crontab(minute=30, hour=5, day_of_month=1, month_of_year="1,4,7,10"),  # quarterly
+        # quarterly
+        "schedule": crontab(minute=30, hour=5, day_of_month=1, month_of_year="1,4,7,10"),
         "options": {"queue": "scraping"},
     },
     # ── Phase 2: Online Exploitation scrapers ──────────────────────────
@@ -208,7 +212,8 @@ celery_app.conf.beat_schedule = {
     # ── Phase 3: Child Labor scrapers ──────────────────────────────────
     "ilostat_api": {
         "task": "app.tasks.scraping_tasks.scrape_ilostat_api",
-        "schedule": crontab(minute=0, hour=10, day_of_month=1, month_of_year="1,4,7,10"),  # quarterly
+        # quarterly
+        "schedule": crontab(minute=0, hour=10, day_of_month=1, month_of_year="1,4,7,10"),
         "options": {"queue": "scraping"},
     },
     "dol_annual_report": {
@@ -228,7 +233,8 @@ celery_app.conf.beat_schedule = {
     },
     "zenodo_kilns": {
         "task": "app.tasks.scraping_tasks.scrape_zenodo_kilns",
-        "schedule": crontab(minute=0, hour=12, day_of_month=1, month_of_year=1),  # annually (one-time)
+        # annually (one-time)
+        "schedule": crontab(minute=0, hour=12, day_of_month=1, month_of_year=1),
         "options": {"queue": "scraping"},
     },
     "bllf": {
@@ -238,13 +244,15 @@ celery_app.conf.beat_schedule = {
     },
     "brick_kiln_dashboard": {
         "task": "app.tasks.scraping_tasks.scrape_brick_kiln_dashboard",
-        "schedule": crontab(minute=0, hour=13, day_of_month=1, month_of_year="1,4,7,10"),  # quarterly
+        # quarterly
+        "schedule": crontab(minute=0, hour=13, day_of_month=1, month_of_year="1,4,7,10"),
         "options": {"queue": "scraping"},
     },
     # ── Phase 4: Cross-border scrapers ─────────────────────────────────
     "ctdc_dataset": {
         "task": "app.tasks.scraping_tasks.scrape_ctdc_dataset",
-        "schedule": crontab(minute=0, hour=14, day_of_month=1, month_of_year="1,4,7,10"),  # quarterly
+        # quarterly
+        "schedule": crontab(minute=0, hour=14, day_of_month=1, month_of_year="1,4,7,10"),
         "options": {"queue": "scraping"},
     },
     "brookings_bride": {

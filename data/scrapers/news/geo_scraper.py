@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 # Playwright import with graceful degradation
 try:
-    from playwright.async_api import async_playwright, Browser, BrowserContext, Page
+    from playwright.async_api import async_playwright, Browser, BrowserContext, Page  # noqa: F401
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False

@@ -1,6 +1,5 @@
 """Tests for BaseAPIScraper."""
 
-from pathlib import Path
 
 import pytest
 

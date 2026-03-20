@@ -11,7 +11,6 @@ class CourtLoader(BaseLoader):
 
     def discover_files(self, extension: str = "json") -> list:
         """Discover files across all court subdirectories."""
-        from pathlib import Path
         source_dir = self.raw_base_dir
         files = []
         for court_dir in ["scp", "lhc", "shc", "phc", "bhc", "ihc", "commonlii"]:
