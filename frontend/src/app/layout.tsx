@@ -1,0 +1,48 @@
+import type { Metadata } from 'next';
+import { Inter, Noto_Nastaliq_Urdu } from 'next/font/google';
+import './globals.css';
+import { ThemeProvider } from '@/components/layout/ThemeProvider';
+import { QueryProvider } from '@/app/providers';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const nastaliq = Noto_Nastaliq_Urdu({
+  subsets: ['arabic'],
+  variable: '--font-urdu',
+  weight: ['400', '700'],
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: 'Nigehbaan — Pakistan Child Trafficking Intelligence',
+  description:
+    'Open-source geospatial intelligence platform tracking child trafficking patterns across Pakistan.',
+  keywords: [
+    'child trafficking',
+    'Pakistan',
+    'intelligence',
+    'geospatial',
+    'child protection',
+    'Nigehbaan',
+  ],
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en" className={`dark ${inter.variable} ${nastaliq.variable}`}>
+      <body className="font-sans bg-[#0F172A] text-[#F8FAFC] antialiased">
+        <QueryProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </QueryProvider>
+      </body>
+    </html>
+  );
+}

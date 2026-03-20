@@ -1,0 +1,493 @@
+# Nigehbaan Data Source Registry
+# ==============================
+# Complete registry of all data sources organized by priority tier.
+# Each source entry defines its URL, scraper module, schedule, and schema.
+#
+# Priority Tiers:
+#   P0: Foundation data — must be loaded before anything else
+#   P1: Core crime/trafficking data for MVP
+#   P2: Enrichment data for deeper analysis
+#   P3: Nice-to-have or experimental sources
+
+# ==============================================================================
+# P0 — FOUNDATION DATA (download first)
+# ==============================================================================
+
+sources:
+
+  # --- Geographic Foundation ---
+
+  - name: "HDX Administrative Boundaries (COD-AB)"
+    url: "https://data.humdata.org/dataset/cod-ab-pak"
+    priority: P0
+    type: geographic_foundation
+    format: GeoJSON/Shapefile
+    scraper: hdx_boundaries
+    schedule: null  # one-time download
+    geographic_granularity: "admin level 0-3"
+    fields: ["ADM0_EN", "ADM0_PCODE", "ADM1_EN", "ADM1_PCODE", "ADM2_EN", "ADM2_PCODE", "ADM3_EN", "ADM3_PCODE", "geometry"]
+    notes: "Foundation layer. Must be loaded before any spatial analysis."
+
+  - name: "HDX Population Estimates (COD-PS)"
+    url: "https://data.humdata.org/dataset/cod-ps-pak"
+    priority: P0
+    type: population
+    format: Excel/CSV
+    scraper: hdx_population
+    schedule: null  # one-time, annual refresh
+    geographic_granularity: "admin level 1-3"
+    fields: ["ADM_PCODE", "ADM_EN", "T_TL", "T_MA", "T_FE", "Year"]
+    notes: "Population denominators for per-capita calculations. Aligned with COD-AB P-codes."
+
+  - name: "Pakistan Census 2017 (CERP)"
+    url: "https://github.com/cerp-analytics/pbs2017"
+    priority: P0
+    type: population
+    format: CSV (GitHub repo)
+    scraper: census_2017
+    schedule: null  # one-time clone
+    geographic_granularity: district
+    fields: ["district", "province", "population_total", "population_male", "population_female", "urban", "rural"]
+    notes: "District-level population from PBS 2017 census. Git clone."
+
+  - name: "Pakistan District Gazetteer"
+    url: null  # local file
+    priority: P0
+    type: geographic_reference
+    format: JSON
+    scraper: null  # manually maintained
+    schedule: null
+    geographic_granularity: district
+    fields: ["pcode", "name_en", "name_ur", "province", "variants"]
+    notes: "Crosswalk file for fuzzy matching of district names across sources."
+
+  # --- Brick Kiln Locations ---
+
+  - name: "Zenodo Brick Kiln Dataset"
+    url: "https://zenodo.org/records/14038648"
+    priority: P0
+    type: bonded_labor_locations
+    format: GeoJSON
+    scraper: zenodo_kilns
+    schedule: null  # one-time download
+    geographic_granularity: point
+    fields: ["geometry", "confidence", "kiln_id"]
+    notes: "11,000+ geolocated brick kilns. Primary bonded labor indicator."
+
+  # ==============================================================================
+  # P1 — CORE CRIME & TRAFFICKING DATA
+  # ==============================================================================
+
+  # --- Civil Society Reports ---
+
+  - name: "Sahil Cruel Numbers Reports"
+    url: "https://sahil.org/cruel-numbers/"
+    priority: P1
+    type: crime_statistics
+    format: PDF (annual reports)
+    scraper: null  # manual download, parsed by sahil_parser
+    schedule: null  # annual publication
+    geographic_granularity: province
+    fields: ["year", "province", "crime_category", "victim_gender", "victim_age_bracket", "case_count"]
+    notes: "16 years (2010-2024) of child abuse data. Format varies across years."
+
+  - name: "SSDO Child Protection Reports"
+    url: "https://ssdo.org.pk"
+    priority: P1
+    type: crime_statistics
+    format: PDF
+    scraper: ssdo_checker
+    schedule: "0 3 20 * *"  # monthly check
+    geographic_granularity: province
+    fields: ["category", "case_count", "conviction_rate", "province"]
+    notes: "Unique value: police-sourced data with conviction rates."
+
+  - name: "CTDC Global Synthetic Dataset"
+    url: "https://www.ctdatacollaborative.org"
+    priority: P1
+    type: victim_data
+    format: CSV
+    scraper: ctdc_victims
+    schedule: null  # quarterly check
+    geographic_granularity: national
+    fields: ["trafficking_type", "exploitation_type", "gender", "age_group", "country_of_exploitation"]
+    notes: "Anonymized case-level victim data. Filter for Pakistan."
+
+  # --- Government Sources ---
+
+  - name: "NCRC State of Children Portal"
+    url: "https://stateofchildren.com/children-dataset/"
+    priority: P1
+    type: government_data
+    format: HTML tables
+    scraper: stateofchildren
+    schedule: "0 3 15 * *"  # monthly
+    geographic_granularity: province
+    fields: ["indicator", "value", "province", "year"]
+    notes: "Easiest government source to scrape. Clean HTML tables."
+
+  - name: "MoHR ZARRA Reports"
+    url: "https://mohr.gov.pk/SiteImage/Misc/files/ZARRA"
+    priority: P1
+    type: government_assessment
+    format: PDF
+    scraper: mohr_checker
+    schedule: "0 3 25 * *"  # monthly check
+    geographic_granularity: district
+    fields: ["district", "case_count", "case_status", "province"]
+    notes: "Federal ministry trafficking assessment."
+
+  - name: "Punjab Police Missing Persons & Crime Stats"
+    url: "https://punjabpolice.gov.pk/missing-persons"
+    priority: P1
+    type: police_data
+    format: HTML/PDF
+    scraper: punjab_police
+    schedule: "0 3 1 * *"  # monthly
+    geographic_granularity: district
+    fields: ["name", "age", "gender", "district", "date_missing", "crime_category", "count"]
+    notes: "Quarterly missing persons lists + annual crime statistics."
+
+  - name: "Sindh Police Crime Statistics"
+    url: "https://sindhpolice.gov.pk/annoucements/crime_stat_all_cities.html"
+    priority: P1
+    type: police_data
+    format: HTML
+    scraper: sindh_police
+    schedule: "0 3 5 * *"  # monthly
+    geographic_granularity: range/district
+    fields: ["range", "district", "crime_type", "year", "count"]
+    notes: "Range-level data. Missing persons page currently 403."
+
+  - name: "KP Child Protection & Welfare Commission"
+    url: "https://kpcpwc.gov.pk/factsandfigure.html"
+    priority: P1
+    type: government_data
+    format: HTML
+    scraper: kpcpwc
+    schedule: "0 3 10 * *"  # monthly
+    geographic_granularity: province
+    fields: ["category", "value", "year"]
+    notes: "KP provincial child protection data."
+
+  # --- Court Data ---
+
+  - name: "Supreme Court of Pakistan (SCP)"
+    url: "https://supremecourt.nadra.gov.pk/judgement-search/"
+    priority: P1
+    type: court_judgments
+    format: HTML/PDF
+    scraper: scp
+    schedule: "0 3 * * 1"  # weekly Monday
+    geographic_granularity: national
+    fields: ["case_number", "year", "date_decided", "parties", "ppc_sections", "judge"]
+    notes: "NADRA-hosted portal. Standard HTML forms."
+
+  - name: "Lahore High Court (LHC)"
+    url: "https://data.lhc.gov.pk/reported_judgments/"
+    priority: P1
+    type: court_judgments
+    format: HTML/PDF
+    scraper: lhc
+    schedule: "0 3 * * 2"  # weekly Tuesday
+    geographic_granularity: province
+    fields: ["case_number", "year", "date_decided", "parties", "ppc_sections"]
+    notes: "Punjab's high court. Highest case volume."
+
+  - name: "Sindh High Court (SHC)"
+    url: "https://cases.shc.gov.pk"
+    priority: P1
+    type: court_judgments
+    format: HTML/PDF
+    scraper: shc
+    schedule: "0 3 * * 3"  # weekly Wednesday
+    geographic_granularity: province
+    fields: ["case_number", "year", "bench", "date_decided", "parties", "ppc_sections"]
+    notes: "5 benches: Karachi, Sukkur, Hyderabad, Larkana, Mirpurkhas."
+
+  - name: "Peshawar High Court (PHC)"
+    url: "https://peshawarhighcourt.gov.pk"
+    priority: P1
+    type: court_judgments
+    format: HTML/PDF
+    scraper: phc
+    schedule: "0 3 * * 4"  # weekly Thursday
+    geographic_granularity: province
+    fields: ["case_number", "year", "date_decided", "parties", "ppc_sections"]
+    notes: "4 benches covering KP."
+
+  - name: "Balochistan High Court (BHC)"
+    url: "https://portal.bhc.gov.pk/case-status/"
+    priority: P1
+    type: court_judgments
+    format: SPA/HTML
+    scraper: bhc
+    schedule: "0 3 * * 5"  # weekly Friday
+    geographic_granularity: province
+    fields: ["case_number", "year", "date_decided", "parties", "ppc_sections"]
+    notes: "SPA requiring Playwright."
+
+  - name: "Islamabad High Court (IHC)"
+    url: "https://mis.ihc.gov.pk/frmCseSrch"
+    priority: P1
+    type: court_judgments
+    format: ASP.NET
+    scraper: ihc
+    schedule: "0 3 * * 6"  # weekly Saturday
+    geographic_granularity: national
+    fields: ["case_number", "year", "date_decided", "parties", "ppc_sections"]
+    notes: "ASP.NET with ViewState. Requires special form handling."
+
+  # --- News Sources ---
+
+  - name: "Dawn Newspaper"
+    url: "https://dawn.com/feeds/home"
+    priority: P1
+    type: news
+    format: RSS/HTML
+    scraper: dawn_scraper
+    schedule: "0 */6 * * *"  # every 6 hours
+    geographic_granularity: article-level
+    fields: ["url", "title", "author", "published_date", "full_text", "tags"]
+    notes: "Pakistan's oldest English-language newspaper."
+
+  - name: "Express Tribune"
+    url: "https://tribune.com.pk/feed"
+    priority: P1
+    type: news
+    format: RSS/HTML
+    scraper: tribune_scraper
+    schedule: "0 */6 * * *"
+    geographic_granularity: article-level
+    fields: ["url", "title", "author", "published_date", "full_text", "tags"]
+    notes: "WordPress RSS + dedicated child-trafficking tag page."
+
+  - name: "The News International"
+    url: "https://www.thenews.com.pk/rss"
+    priority: P1
+    type: news
+    format: RSS/HTML
+    scraper: the_news_scraper
+    schedule: "0 */6 * * *"
+    geographic_granularity: article-level
+    fields: ["url", "title", "author", "published_date", "full_text"]
+    notes: "Part of Jang Group."
+
+  - name: "ARY News"
+    url: "https://arynews.tv/feed/"
+    priority: P1
+    type: news
+    format: RSS/HTML
+    scraper: ary_scraper
+    schedule: "0 */6 * * *"
+    geographic_granularity: article-level
+    fields: ["url", "title", "author", "published_date", "full_text", "category"]
+    notes: "WordPress-based. WP REST API may be available."
+
+  - name: "Geo News"
+    url: "https://www.geo.tv"
+    priority: P1
+    type: news
+    format: HTML (JS-rendered)
+    scraper: geo_scraper
+    schedule: "0 2 * * *"  # daily
+    geographic_granularity: article-level
+    fields: ["url", "title", "published_date", "full_text"]
+    notes: "Heavy JS rendering. Requires Playwright. No RSS feed."
+
+  - name: "Google News RSS Aggregator"
+    url: "https://news.google.com/rss/search?q=child+trafficking+Pakistan"
+    priority: P1
+    type: news_aggregator
+    format: RSS
+    scraper: rss_monitor
+    schedule: "0 */4 * * *"  # every 4 hours
+    geographic_granularity: article-level
+    fields: ["url", "title", "published", "source_feed"]
+    notes: "Aggregates multiple sources. Captures outlets without dedicated scrapers."
+
+  # --- International Reports ---
+
+  - name: "US State Dept TIP Report"
+    url: "https://www.state.gov/reports/trafficking-in-persons-report/"
+    priority: P1
+    type: international_assessment
+    format: HTML
+    scraper: tip_report
+    schedule: "0 3 1 7 *"  # annually in July
+    geographic_granularity: national
+    fields: ["year", "tier_ranking", "investigations", "prosecutions", "convictions", "victims_identified"]
+    notes: "24+ years of data. Gold standard international assessment."
+
+  - name: "US DOL ILAB Child Labor Report"
+    url: "https://www.dol.gov/agencies/ilab/resources/reports/child-labor/pakistan"
+    priority: P1
+    type: international_assessment
+    format: PDF
+    scraper: dol_child_labor
+    schedule: "0 3 15 10 *"  # annually Q4
+    geographic_granularity: national/sector
+    fields: ["year", "sector", "child_labor_prevalence", "worst_forms"]
+    notes: "Annual child labor findings by sector."
+
+  # ==============================================================================
+  # P2 — ENRICHMENT DATA
+  # ==============================================================================
+
+  - name: "CommonLII Court Decisions"
+    url: "https://www.commonlii.org/resources/245.html"
+    priority: P2
+    type: court_judgments
+    format: HTML
+    scraper: commonlii
+    schedule: "0 3 1 * *"  # monthly
+    geographic_granularity: national
+    fields: ["url", "court", "date", "parties", "full_text"]
+    notes: "Historical judgments not on individual court portals."
+
+  - name: "UNODC Data Portal"
+    url: "https://dataunodc.un.org"
+    priority: P2
+    type: international_data
+    format: CSV/API
+    scraper: unodc
+    schedule: "0 3 1 */3 *"  # quarterly
+    geographic_granularity: national
+    fields: ["indicator", "year", "value"]
+    notes: "Pakistan-filtered trafficking statistics + GLO.ACT reports."
+
+  - name: "World Bank Development Indicators"
+    url: "https://api.worldbank.org/v2/country/PAK/indicator/"
+    priority: P2
+    type: socioeconomic
+    format: JSON API
+    scraper: worldbank_api
+    schedule: "0 3 1 */3 *"  # quarterly
+    geographic_granularity: national
+    fields: ["indicator_code", "indicator_name", "year", "value"]
+    notes: "GDP, poverty, literacy, school enrollment — vulnerability context."
+
+  - name: "UNHCR Refugee Data Finder"
+    url: "https://api.unhcr.org/population/v1/"
+    priority: P2
+    type: refugee_data
+    format: JSON API
+    scraper: unhcr_api
+    schedule: "0 3 15 */3 *"  # quarterly
+    geographic_granularity: national/settlement
+    fields: ["population_type", "origin_country", "count", "year", "settlement"]
+    notes: "Afghan refugee populations and settlement locations."
+
+  - name: "OSM Border Crossings (Geofabrik)"
+    url: "https://download.geofabrik.de/asia/pakistan.html"
+    priority: P2
+    type: geographic_infrastructure
+    format: Shapefile
+    scraper: osm_borders
+    schedule: null  # one-time with monthly refresh option
+    geographic_granularity: point
+    fields: ["name", "lat", "lng", "osm_id", "border_country"]
+    notes: "Border crossing points for cross-border trafficking route analysis."
+
+  - name: "UNOSAT 2022 Flood Extent"
+    url: "https://data.humdata.org"
+    priority: P2
+    type: disaster_vulnerability
+    format: Shapefile
+    scraper: flood_extent
+    schedule: null  # one-time download
+    geographic_granularity: polygon
+    fields: ["geometry", "flood_date", "satellite_source"]
+    notes: "2022 flood extent for vulnerability overlay."
+
+  - name: "Walk Free Global Slavery Index"
+    url: "https://www.walkfree.org/global-slavery-index/"
+    priority: P2
+    type: international_index
+    format: Excel/CSV
+    scraper: walkfree_gsi
+    schedule: null  # periodic check
+    geographic_granularity: national
+    fields: ["gsi_score", "estimated_prevalence", "vulnerability_indicators"]
+    notes: "23 vulnerability indicators for modern slavery risk."
+
+  - name: "FIA Annual Reports"
+    url: "https://fia.gov.pk"
+    priority: P2
+    type: government_data
+    format: PDF
+    scraper: null  # manual download
+    schedule: null
+    geographic_granularity: national
+    fields: ["cases_registered", "arrests", "convictions", "year"]
+    notes: "Federal Investigation Agency anti-trafficking data."
+
+  - name: "SPARC State of Pakistan's Children"
+    url: "https://sparcpk.org"
+    priority: P2
+    type: civil_society
+    format: PDF
+    scraper: null  # manual download
+    schedule: null
+    geographic_granularity: province
+    fields: ["indicator", "value", "province", "year"]
+    notes: "Annual child rights monitoring report."
+
+  - name: "ILO Child Labour Survey Pakistan"
+    url: "https://www.ilo.org"
+    priority: P2
+    type: international_data
+    format: PDF/Excel
+    scraper: null  # manual download
+    schedule: null
+    geographic_granularity: province
+    fields: ["sector", "age_group", "prevalence", "province"]
+    notes: "ILO-supported national child labour survey data."
+
+  - name: "Pakistan Social and Living Standards (PSLM)"
+    url: "https://www.pbs.gov.pk/content/pslm-survey"
+    priority: P2
+    type: socioeconomic
+    format: PDF/Excel
+    scraper: null  # manual download
+    schedule: null
+    geographic_granularity: district
+    fields: ["education", "health", "water_sanitation", "district"]
+    notes: "PBS household survey with district-level indicators."
+
+  # ==============================================================================
+  # P3 — FUTURE / EXPERIMENTAL SOURCES
+  # ==============================================================================
+
+  - name: "NADRA Birth Registration Data"
+    url: null
+    priority: P3
+    type: government_data
+    format: unknown
+    scraper: null
+    schedule: null
+    geographic_granularity: district
+    fields: ["birth_registration_rate", "district", "year"]
+    notes: "Not publicly available. Would require data sharing agreement."
+
+  - name: "Telecommunication Data (Mobility)"
+    url: null
+    priority: P3
+    type: mobility
+    format: unknown
+    scraper: null
+    schedule: null
+    geographic_granularity: cell tower
+    fields: ["origin", "destination", "flow_count", "period"]
+    notes: "CDR-based mobility data. Privacy-sensitive. Research partnership needed."
+
+  - name: "Social Media Monitoring"
+    url: null
+    priority: P3
+    type: social_media
+    format: API
+    scraper: null
+    schedule: null
+    geographic_granularity: varies
+    fields: ["platform", "content", "location", "timestamp"]
+    notes: "Twitter/X, Facebook monitoring for incident reports. Ethics review needed."

@@ -1,0 +1,28 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# System dependencies for geopandas/shapely (no Playwright)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend application code
+COPY backend/ ./backend/
+# Copy scraper modules
+COPY data/ ./data/
+# Copy scraper runner
+COPY run_scraper.py ./
+
+# backend/ for app.* imports, /app for data.* imports
+ENV PYTHONPATH="/app/backend:/app"
+
+EXPOSE 8000
+
+# Default: run Celery worker. Override via docker-compose command.
+CMD ["celery", "-A", "app.tasks.celery_app", "worker", "--loglevel=info", "--concurrency=2"]

@@ -1,0 +1,191 @@
+{
+  "metadata": {
+    "description": "Pakistan district crosswalk with name variants for fuzzy matching",
+    "source": "HDX COD-AB PAK + manual augmentation",
+    "last_updated": "2026-03-19",
+    "total_districts": 170,
+    "note": "Sample file with 20 major districts. Full file should include all ~170 districts."
+  },
+  "districts": [
+    {
+      "pcode": "PK0401",
+      "name_en": "Lahore",
+      "name_ur": "\u0644\u0627\u06c1\u0648\u0631",
+      "province": "Punjab",
+      "province_pcode": "PK04",
+      "division": "Lahore",
+      "variants": ["Lahore", "\u0644\u0627\u06c1\u0648\u0631", "LHR", "Lahore District"]
+    },
+    {
+      "pcode": "PK0403",
+      "name_en": "Faisalabad",
+      "name_ur": "\u0641\u06cc\u0635\u0644 \u0622\u0628\u0627\u062f",
+      "province": "Punjab",
+      "province_pcode": "PK04",
+      "division": "Faisalabad",
+      "variants": ["Faisalabad", "\u0641\u06cc\u0635\u0644 \u0622\u0628\u0627\u062f", "FSD", "Lyallpur"]
+    },
+    {
+      "pcode": "PK0404",
+      "name_en": "Rawalpindi",
+      "name_ur": "\u0631\u0627\u0648\u0644\u067e\u0646\u0688\u06cc",
+      "province": "Punjab",
+      "province_pcode": "PK04",
+      "division": "Rawalpindi",
+      "variants": ["Rawalpindi", "\u0631\u0627\u0648\u0644\u067e\u0646\u0688\u06cc", "RWP", "Pindi"]
+    },
+    {
+      "pcode": "PK0406",
+      "name_en": "Multan",
+      "name_ur": "\u0645\u0644\u062a\u0627\u0646",
+      "province": "Punjab",
+      "province_pcode": "PK04",
+      "division": "Multan",
+      "variants": ["Multan", "\u0645\u0644\u062a\u0627\u0646", "MLT", "Multan District"]
+    },
+    {
+      "pcode": "PK0427",
+      "name_en": "Kasur",
+      "name_ur": "\u0642\u0635\u0648\u0631",
+      "province": "Punjab",
+      "province_pcode": "PK04",
+      "division": "Lahore",
+      "variants": ["Kasur", "\u0642\u0635\u0648\u0631", "Qasur", "Qasoor"]
+    },
+    {
+      "pcode": "PK0413",
+      "name_en": "Muzaffargarh",
+      "name_ur": "\u0645\u0638\u0641\u0631 \u06af\u0691\u06be",
+      "province": "Punjab",
+      "province_pcode": "PK04",
+      "division": "Dera Ghazi Khan",
+      "variants": ["Muzaffargarh", "\u0645\u0638\u0641\u0631 \u06af\u0691\u06be", "M.Garh", "Muzafargarh"]
+    },
+    {
+      "pcode": "PK0414",
+      "name_en": "Rahim Yar Khan",
+      "name_ur": "\u0631\u062d\u06cc\u0645 \u06cc\u0627\u0631 \u062e\u0627\u0646",
+      "province": "Punjab",
+      "province_pcode": "PK04",
+      "division": "Bahawalpur",
+      "variants": ["Rahim Yar Khan", "\u0631\u062d\u06cc\u0645 \u06cc\u0627\u0631 \u062e\u0627\u0646", "R.Y. Khan", "RYK", "Rahim Yar Khan District"]
+    },
+    {
+      "pcode": "PK0301",
+      "name_en": "Karachi Central",
+      "name_ur": "\u06a9\u0631\u0627\u0686\u06cc \u0633\u0646\u0679\u0631\u0644",
+      "province": "Sindh",
+      "province_pcode": "PK03",
+      "division": "Karachi",
+      "variants": ["Karachi Central", "Karachi", "\u06a9\u0631\u0627\u0686\u06cc", "KHI", "Karachi City"]
+    },
+    {
+      "pcode": "PK0310",
+      "name_en": "Hyderabad",
+      "name_ur": "\u062d\u06cc\u062f\u0631\u0622\u0628\u0627\u062f",
+      "province": "Sindh",
+      "province_pcode": "PK03",
+      "division": "Hyderabad",
+      "variants": ["Hyderabad", "\u062d\u06cc\u062f\u0631\u0622\u0628\u0627\u062f", "Hyderabad Sindh", "HYD"]
+    },
+    {
+      "pcode": "PK0314",
+      "name_en": "Sukkur",
+      "name_ur": "\u0633\u06a9\u06be\u0631",
+      "province": "Sindh",
+      "province_pcode": "PK03",
+      "division": "Sukkur",
+      "variants": ["Sukkur", "\u0633\u06a9\u06be\u0631", "Sukkar"]
+    },
+    {
+      "pcode": "PK0318",
+      "name_en": "Jacobabad",
+      "name_ur": "\u062c\u06cc\u06a9\u0628 \u0622\u0628\u0627\u062f",
+      "province": "Sindh",
+      "province_pcode": "PK03",
+      "division": "Larkana",
+      "variants": ["Jacobabad", "\u062c\u06cc\u06a9\u0628 \u0622\u0628\u0627\u062f", "Jacobobad"]
+    },
+    {
+      "pcode": "PK0201",
+      "name_en": "Peshawar",
+      "name_ur": "\u067e\u0634\u0627\u0648\u0631",
+      "province": "Khyber Pakhtunkhwa",
+      "province_pcode": "PK02",
+      "division": "Peshawar",
+      "variants": ["Peshawar", "\u067e\u0634\u0627\u0648\u0631", "PEW", "Peshawer"]
+    },
+    {
+      "pcode": "PK0205",
+      "name_en": "Dera Ismail Khan",
+      "name_ur": "\u0688\u06cc\u0631\u06c1 \u0627\u0633\u0645\u0627\u0639\u06cc\u0644 \u062e\u0627\u0646",
+      "province": "Khyber Pakhtunkhwa",
+      "province_pcode": "PK02",
+      "division": "Dera Ismail Khan",
+      "variants": ["Dera Ismail Khan", "\u0688\u06cc\u0631\u06c1 \u0627\u0633\u0645\u0627\u0639\u06cc\u0644 \u062e\u0627\u0646", "DI Khan", "D.I. Khan", "D I Khan", "DIK", "D.I.Khan"]
+    },
+    {
+      "pcode": "PK0208",
+      "name_en": "Swat",
+      "name_ur": "\u0633\u0648\u0627\u062a",
+      "province": "Khyber Pakhtunkhwa",
+      "province_pcode": "PK02",
+      "division": "Malakand",
+      "variants": ["Swat", "\u0633\u0648\u0627\u062a", "Swat District"]
+    },
+    {
+      "pcode": "PK0101",
+      "name_en": "Quetta",
+      "name_ur": "\u06a9\u0648\u0626\u0679\u06c1",
+      "province": "Balochistan",
+      "province_pcode": "PK01",
+      "division": "Quetta",
+      "variants": ["Quetta", "\u06a9\u0648\u0626\u0679\u06c1", "QTA", "Quetta District"]
+    },
+    {
+      "pcode": "PK0110",
+      "name_en": "Turbat",
+      "name_ur": "\u062a\u0631\u0628\u062a",
+      "province": "Balochistan",
+      "province_pcode": "PK01",
+      "division": "Makran",
+      "variants": ["Turbat", "\u062a\u0631\u0628\u062a", "Kech", "Kech District", "Turbat/Kech"]
+    },
+    {
+      "pcode": "PK0501",
+      "name_en": "Islamabad",
+      "name_ur": "\u0627\u0633\u0644\u0627\u0645 \u0622\u0628\u0627\u062f",
+      "province": "Islamabad Capital Territory",
+      "province_pcode": "PK05",
+      "division": "Islamabad",
+      "variants": ["Islamabad", "\u0627\u0633\u0644\u0627\u0645 \u0622\u0628\u0627\u062f", "ISB", "ICT", "Islamabad Capital Territory"]
+    },
+    {
+      "pcode": "PK0601",
+      "name_en": "Muzaffarabad",
+      "name_ur": "\u0645\u0638\u0641\u0631\u0622\u0628\u0627\u062f",
+      "province": "Azad Jammu & Kashmir",
+      "province_pcode": "PK06",
+      "division": "Muzaffarabad",
+      "variants": ["Muzaffarabad", "\u0645\u0638\u0641\u0631\u0622\u0628\u0627\u062f", "AJK", "Azad Kashmir"]
+    },
+    {
+      "pcode": "PK0701",
+      "name_en": "Gilgit",
+      "name_ur": "\u06af\u0644\u06af\u062a",
+      "province": "Gilgit-Baltistan",
+      "province_pcode": "PK07",
+      "division": "Gilgit",
+      "variants": ["Gilgit", "\u06af\u0644\u06af\u062a", "GB", "Gilgit-Baltistan", "Gilgit Baltistan"]
+    },
+    {
+      "pcode": "PK0415",
+      "name_en": "Bahawalpur",
+      "name_ur": "\u0628\u06c1\u0627\u0648\u0644\u067e\u0648\u0631",
+      "province": "Punjab",
+      "province_pcode": "PK04",
+      "division": "Bahawalpur",
+      "variants": ["Bahawalpur", "\u0628\u06c1\u0627\u0648\u0644\u067e\u0648\u0631", "BWP", "Bahawalpur District"]
+    }
+  ]
+}

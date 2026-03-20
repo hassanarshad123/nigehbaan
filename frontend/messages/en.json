@@ -1,0 +1,160 @@
+{
+  "meta": {
+    "title": "Nigehbaan — Pakistan Child Trafficking Intelligence",
+    "description": "Open-source geospatial intelligence platform tracking child trafficking patterns across Pakistan."
+  },
+  "nav": {
+    "map": "Map",
+    "dashboard": "Dashboard",
+    "report": "Report",
+    "legal": "Legal",
+    "resources": "Resources",
+    "about": "About",
+    "admin": "Admin"
+  },
+  "map": {
+    "title": "Intelligence Map",
+    "searchPlaceholder": "Search district or city...",
+    "layers": {
+      "incidents": "Incidents",
+      "kilns": "Brick Kilns",
+      "routes": "Trafficking Routes",
+      "borders": "Border Crossings",
+      "poverty": "Poverty Index",
+      "flood": "Flood-Affected Areas"
+    },
+    "legend": "Legend",
+    "timeline": "Timeline",
+    "yearRange": "Year Range"
+  },
+  "dashboard": {
+    "title": "Analytics Dashboard",
+    "totalIncidents": "Total Incidents",
+    "districtsWithData": "Districts With Data",
+    "dataSources": "Data Sources",
+    "convictionRate": "Avg. Conviction Rate",
+    "trend": "15-Year Trend",
+    "provinceComparison": "Province Comparison",
+    "caseTypes": "Case Type Breakdown",
+    "convictionRates": "Conviction Rates Over Time",
+    "filters": "Filters",
+    "province": "Province",
+    "allProvinces": "All Provinces",
+    "yearRange": "Year Range",
+    "incidentType": "Incident Type"
+  },
+  "report": {
+    "title": "Submit a Report",
+    "subtitle": "Report suspicious activity or a child in danger. You can report anonymously.",
+    "step1": "Category",
+    "step2": "Location",
+    "step3": "When",
+    "step4": "Details",
+    "step5": "Contact",
+    "categories": {
+      "suspicious_activity": "Suspicious Activity",
+      "missing_child": "Missing Child",
+      "bonded_labor": "Bonded Labor",
+      "begging_ring": "Begging Ring",
+      "child_marriage": "Child Marriage",
+      "other": "Other"
+    },
+    "locationPrompt": "Where did you observe this?",
+    "addressPlaceholder": "Enter address or landmark...",
+    "pinOnMap": "Pin on Map",
+    "whenPrompt": "When did this happen?",
+    "detailsPrompt": "Describe what you observed",
+    "detailsPlaceholder": "Provide any details that may help...",
+    "uploadPhotos": "Upload Photos (optional)",
+    "contactPrompt": "Contact Information (optional)",
+    "anonymous": "Report Anonymously",
+    "anonymousNote": "Your identity will not be stored or shared.",
+    "namePlaceholder": "Your name",
+    "phonePlaceholder": "Phone number",
+    "emailPlaceholder": "Email address",
+    "next": "Next",
+    "back": "Back",
+    "submit": "Submit Report",
+    "submitting": "Submitting..."
+  },
+  "reportSuccess": {
+    "title": "Report Submitted",
+    "message": "Your report has been received. A reference number has been assigned.",
+    "referenceLabel": "Reference Number",
+    "helplineTitle": "If a child is in immediate danger, call:",
+    "helplines": {
+      "childProtection": "Child Protection (1099)",
+      "edhi": "Edhi Foundation (1098)",
+      "roshni": "Roshni Helpline (0800-22444)"
+    },
+    "backToMap": "Back to Map"
+  },
+  "district": {
+    "riskScore": "Risk Score",
+    "population": "Population",
+    "incidents": "Incidents",
+    "kilns": "Brick Kilns",
+    "schools": "Schools",
+    "convictionRate": "Conviction Rate",
+    "incidentTimeline": "Incident Timeline",
+    "viewProfile": "View Profile"
+  },
+  "legal": {
+    "title": "Court Judgments",
+    "subtitle": "Search Pakistan court judgments related to child trafficking and exploitation.",
+    "court": "Court",
+    "year": "Year",
+    "ppcSection": "PPC Section",
+    "outcome": "Outcome",
+    "allCourts": "All Courts",
+    "allYears": "All Years",
+    "allSections": "All Sections",
+    "allOutcomes": "All Outcomes",
+    "search": "Search",
+    "caseNumber": "Case Number",
+    "judgmentDate": "Judgment Date",
+    "verdict": "Verdict",
+    "sentence": "Sentence",
+    "convicted": "Convicted",
+    "acquitted": "Acquitted",
+    "pending": "Pending",
+    "dismissed": "Dismissed",
+    "years": "years"
+  },
+  "resources": {
+    "title": "Resources & Helplines",
+    "subtitle": "Emergency contacts, legal aid, shelter homes, and NGO support for child protection in Pakistan.",
+    "helplines": "Emergency Helplines",
+    "legalAid": "Legal Aid",
+    "shelterHomes": "Shelter Homes",
+    "ngoContacts": "NGO Contacts"
+  },
+  "about": {
+    "title": "About Nigehbaan",
+    "mission": "Mission",
+    "missionText": "Nigehbaan (\"guardian\" in Urdu) is an open-source geospatial intelligence platform designed to shine a light on child trafficking patterns across Pakistan. By aggregating data from media reports, court records, NGO assessments, and citizen reports, Nigehbaan empowers researchers, journalists, law enforcement, and civil society to identify at-risk areas and advocate for policy change.",
+    "methodology": "Methodology",
+    "dataSources": "Data Sources",
+    "team": "Team"
+  },
+  "footer": {
+    "emergency": "Emergency Helplines",
+    "childProtection": "Child Protection: 1099",
+    "edhi": "Edhi: 1098",
+    "roshni": "Roshni: 0800-22444",
+    "copyright": "Nigehbaan Project — Open Source Intelligence for Child Protection",
+    "about": "About"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "noResults": "No results found",
+    "viewAll": "View All",
+    "language": "Language"
+  }
+}

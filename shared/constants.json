@@ -1,0 +1,107 @@
+{
+  "provinces": {
+    "PK01": {"name_en": "Balochistan", "name_ur": "بلوچستان"},
+    "PK02": {"name_en": "Khyber Pakhtunkhwa", "name_ur": "خیبر پختونخوا"},
+    "PK03": {"name_en": "Sindh", "name_ur": "سندھ"},
+    "PK04": {"name_en": "Punjab", "name_ur": "پنجاب"},
+    "PK05": {"name_en": "Islamabad Capital Territory", "name_ur": "اسلام آباد"},
+    "PK06": {"name_en": "Gilgit-Baltistan", "name_ur": "گلگت بلتستان"},
+    "PK07": {"name_en": "Azad Jammu & Kashmir", "name_ur": "آزاد جموں و کشمیر"}
+  },
+  "incidentTypes": [
+    {"value": "kidnapping", "label_en": "Kidnapping / Abduction", "label_ur": "اغوا", "color": "#EF4444"},
+    {"value": "sexual_abuse", "label_en": "Sexual Abuse", "label_ur": "جنسی زیادتی", "color": "#EC4899"},
+    {"value": "bonded_labor", "label_en": "Bonded Labor", "label_ur": "بندھوا مزدوری", "color": "#F97316"},
+    {"value": "trafficking", "label_en": "Trafficking", "label_ur": "انسانی سمگلنگ", "color": "#DC2626"},
+    {"value": "child_marriage", "label_en": "Child Marriage", "label_ur": "کم عمری کی شادی", "color": "#F59E0B"},
+    {"value": "begging", "label_en": "Begging Mafia", "label_ur": "بھیک مافیا", "color": "#8B5CF6"},
+    {"value": "missing", "label_en": "Missing Child", "label_ur": "لاپتہ بچہ", "color": "#3B82F6"},
+    {"value": "organ_trafficking", "label_en": "Organ Trafficking", "label_ur": "اعضاء کی تجارت", "color": "#6B21A8"},
+    {"value": "child_labor", "label_en": "Child Labor", "label_ur": "چائلڈ لیبر", "color": "#D97706"}
+  ],
+  "reportTypes": [
+    {"value": "suspicious_activity", "label_en": "Suspicious Activity", "label_ur": "مشکوک سرگرمی"},
+    {"value": "missing_child", "label_en": "Missing Child", "label_ur": "لاپتہ بچہ"},
+    {"value": "bonded_labor", "label_en": "Bonded Labor", "label_ur": "بندھوا مزدوری"},
+    {"value": "begging_ring", "label_en": "Begging Ring", "label_ur": "بھیک کا گروہ"},
+    {"value": "child_marriage", "label_en": "Child Marriage", "label_ur": "کم عمری کی شادی"},
+    {"value": "other", "label_en": "Other", "label_ur": "دیگر"}
+  ],
+  "reportStatuses": [
+    {"value": "submitted", "label_en": "Submitted", "label_ur": "جمع کرایا گیا"},
+    {"value": "verified", "label_en": "Verified", "label_ur": "تصدیق شدہ"},
+    {"value": "referred", "label_en": "Referred", "label_ur": "حوالہ دیا گیا"},
+    {"value": "resolved", "label_en": "Resolved", "label_ur": "حل شدہ"},
+    {"value": "rejected", "label_en": "Rejected", "label_ur": "مسترد"}
+  ],
+  "mapLayers": [
+    {"id": "boundaries", "label_en": "District Boundaries", "label_ur": "اضلاع کی حدود", "color": "#475569", "default": true},
+    {"id": "incidents", "label_en": "Incident Heat Map", "label_ur": "واقعات کا نقشہ", "color": "#EF4444", "default": true},
+    {"id": "kilns", "label_en": "Brick Kilns", "label_ur": "بھٹے", "color": "#F97316", "default": true},
+    {"id": "borders", "label_en": "Border Crossings", "label_ur": "سرحدی گزرگاہیں", "color": "#DC2626", "default": false},
+    {"id": "routes", "label_en": "Trafficking Routes", "label_ur": "سمگلنگ کے راستے", "color": "#EC4899", "default": false},
+    {"id": "missing", "label_en": "Missing Children", "label_ur": "لاپتہ بچے", "color": "#3B82F6", "default": false},
+    {"id": "poverty", "label_en": "Poverty Index", "label_ur": "غربت کا اشاریہ", "color": "#7C3AED", "default": false},
+    {"id": "schools", "label_en": "School Dropout Rate", "label_ur": "اسکول چھوڑنے کی شرح", "color": "#D97706", "default": false},
+    {"id": "flood", "label_en": "Flood Affected Areas", "label_ur": "سیلاب زدہ علاقے", "color": "#0EA5E9", "default": false},
+    {"id": "reports", "label_en": "Public Reports", "label_ur": "عوامی رپورٹیں", "color": "#FBBF24", "default": false},
+    {"id": "convictions", "label_en": "Conviction Rates", "label_ur": "سزا کی شرح", "color": "#10B981", "default": false}
+  ],
+  "theme": {
+    "colors": {
+      "bg": "#0F172A",
+      "surface": "#1E293B",
+      "border": "#334155",
+      "textPrimary": "#F8FAFC",
+      "textSecondary": "#94A3B8",
+      "alert": "#EF4444",
+      "amber": "#F59E0B",
+      "cyan": "#06B6D4",
+      "emerald": "#10B981",
+      "kiln": "#F97316",
+      "route": "#EC4899"
+    },
+    "mapStyle": "mapbox://styles/mapbox/dark-v11",
+    "defaultViewport": {
+      "latitude": 30.3753,
+      "longitude": 69.3451,
+      "zoom": 5
+    }
+  },
+  "ppcSections": [
+    {"code": "366-A", "description": "Kidnapping woman to compel marriage"},
+    {"code": "366-B", "description": "Importation of girl from foreign country"},
+    {"code": "369", "description": "Kidnapping child under 10"},
+    {"code": "370", "description": "Buying or selling person for slavery"},
+    {"code": "371-A", "description": "Selling person for prostitution"},
+    {"code": "371-B", "description": "Buying person for prostitution"}
+  ],
+  "relevantStatutes": [
+    "Prevention of Trafficking in Persons Act 2018 (PTPA)",
+    "Zainab Alert, Response and Recovery Act 2020",
+    "Punjab Destitute and Neglected Children Act 2004",
+    "Bonded Labour System (Abolition) Act 1992",
+    "Prevention of Smuggling of Migrants Act 2018"
+  ],
+  "helplines": [
+    {"name": "MoHR Helpline", "number": "1099", "description_en": "Ministry of Human Rights", "description_ur": "وزارت انسانی حقوق"},
+    {"name": "Madadgaar", "number": "1098", "description_en": "Child abuse helpline", "description_ur": "بچوں کے تحفظ کی ہیلپ لائن"},
+    {"name": "Roshni Helpline", "number": "0800-22444", "description_en": "Missing children", "description_ur": "لاپتہ بچوں کی ہیلپ لائن"},
+    {"name": "CPWB Punjab", "number": "0800-99000", "description_en": "Punjab Child Protection", "description_ur": "پنجاب چائلڈ پروٹیکشن"},
+    {"name": "Sindh CPA", "number": "0800-27444", "description_en": "Sindh Child Protection", "description_ur": "سندھ چائلڈ پروٹیکشن"}
+  ],
+  "courts": [
+    {"code": "scp", "name_en": "Supreme Court of Pakistan", "name_ur": "عدالت عظمیٰ پاکستان"},
+    {"code": "lhc", "name_en": "Lahore High Court", "name_ur": "لاہور ہائی کورٹ"},
+    {"code": "shc", "name_en": "Sindh High Court", "name_ur": "سندھ ہائی کورٹ"},
+    {"code": "phc", "name_en": "Peshawar High Court", "name_ur": "پشاور ہائی کورٹ"},
+    {"code": "bhc", "name_en": "Balochistan High Court", "name_ur": "بلوچستان ہائی کورٹ"},
+    {"code": "ihc", "name_en": "Islamabad High Court", "name_ur": "اسلام آباد ہائی کورٹ"}
+  ],
+  "dataPriorities": {
+    "P0": "Immediate — structured, downloadable, no scraping needed",
+    "P1": "High — scrapable HTML or consistent PDFs, high value",
+    "P2": "Medium — requires PDF parsing or complex scraping",
+    "P3": "Long-term — requires institutional access or NLP"
+  }
+}

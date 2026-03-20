@@ -1,0 +1,55 @@
+# Version control
+.git
+.gitignore
+
+# Frontend (not needed for scrapers)
+frontend/
+node_modules/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+.eggs/
+
+# Raw scraping data (regenerated at runtime)
+data/raw/
+
+# Environment files (mounted separately)
+.env
+.env.production
+*.pem
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# Documentation
+docs/
+*.md
+!requirements.txt
+
+# Docker
+docker-compose.yml
+docker-compose.prod.yml
+Dockerfile
+Dockerfile.scraper
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+scripts/
+compass_artifact_*
