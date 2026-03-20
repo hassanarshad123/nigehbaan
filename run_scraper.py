@@ -27,6 +27,7 @@ SCRAPERS = {
     "tribune": ("data.scrapers.news.tribune_scraper", "TribuneScraper"),
     "the_news": ("data.scrapers.news.the_news_scraper", "TheNewsScraper"),
     "ary_news": ("data.scrapers.news.ary_scraper", "ARYScraper"),
+    "geo_news": ("data.scrapers.news.geo_scraper", "GeoScraper"),
     "rss_monitor": ("data.scrapers.news.rss_monitor", "RSSMonitor"),
     # Government scrapers
     "stateofchildren": ("data.scrapers.government.stateofchildren", "StateOfChildrenScraper"),

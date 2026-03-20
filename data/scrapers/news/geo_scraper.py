@@ -73,10 +73,11 @@ class GeoScraper(BaseScraper):
         "human trafficking",
     ]
 
-    GOOGLE_NEWS_FALLBACK: str = (
-        "https://news.google.com/rss/search?"
-        "q=site:geo.tv+child+trafficking&hl=en-PK&gl=PK&ceid=PK:en"
-    )
+    RSS_URLS: list[str] = [
+        "https://www.geo.tv/rss/1/1",
+        "https://www.geo.tv/rss/1/7",  # national
+        "https://www.geo.tv/rss/1/2",  # latest
+    ]
 
     def __init__(self) -> None:
         super().__init__()
@@ -462,39 +463,46 @@ class GeoScraper(BaseScraper):
             logger.error("[%s] httpx fetch failed for %s: %s", self.name, url, exc)
             return {}
 
-    async def _scrape_via_google_news(self) -> list[dict[str, Any]]:
-        """Scrape Geo articles via Google News RSS (no browser needed)."""
+    async def _scrape_via_rss(self) -> list[dict[str, Any]]:
+        """Scrape Geo articles via RSS feed + httpx (no browser needed)."""
         articles: list[dict[str, Any]] = []
-        try:
-            response = await self.fetch(self.GOOGLE_NEWS_FALLBACK)
-            parsed = await asyncio.to_thread(feedparser.parse, response.text)
+        geo_urls: list[str] = []
 
-            geo_urls: list[str] = []
-            for entry in parsed.entries:
-                link = entry.get("link", "")
-                if link and "geo.tv" in link:
-                    geo_urls.append(link)
+        for rss_url in self.RSS_URLS:
+            try:
+                response = await self.fetch(rss_url)
+                parsed = await asyncio.to_thread(feedparser.parse, response.text)
+                for entry in parsed.entries:
+                    link = entry.get("link", "")
+                    if link and link not in geo_urls:
+                        geo_urls.append(link)
+                if geo_urls:
+                    logger.info("[%s] RSS %s yielded %d URLs", self.name, rss_url, len(geo_urls))
+                    break
+            except Exception as exc:
+                logger.warning("[%s] RSS %s failed: %s", self.name, rss_url, exc)
 
-            logger.info("[%s] Google News RSS found %d Geo URLs", self.name, len(geo_urls))
+        if not geo_urls:
+            logger.warning("[%s] No RSS entries found", self.name)
+            return articles
 
-            semaphore = asyncio.Semaphore(3)
-            async def _fetch(url: str) -> dict[str, Any]:
-                async with semaphore:
-                    return await self._fetch_article_httpx(url)
+        logger.info("[%s] RSS found %d Geo URLs", self.name, len(geo_urls))
 
-            results = await asyncio.gather(
-                *[_fetch(url) for url in geo_urls],
-                return_exceptions=True,
-            )
+        semaphore = asyncio.Semaphore(3)
+        async def _fetch(url: str) -> dict[str, Any]:
+            async with semaphore:
+                return await self._fetch_article_httpx(url)
 
-            for result in results:
-                if isinstance(result, dict) and result.get("url"):
-                    combined = f"{result.get('title', '')} {result.get('full_text', '')}"
-                    if self.matches_keywords(combined):
-                        articles.append(result)
+        results = await asyncio.gather(
+            *[_fetch(url) for url in geo_urls],
+            return_exceptions=True,
+        )
 
-        except Exception as exc:
-            logger.error("[%s] Google News fallback failed: %s", self.name, exc)
+        for result in results:
+            if isinstance(result, dict) and result.get("url"):
+                combined = f"{result.get('title', '')} {result.get('full_text', '')}"
+                if self.matches_keywords(combined):
+                    articles.append(result)
 
         return articles
 
@@ -509,17 +517,17 @@ class GeoScraper(BaseScraper):
         """
         if not PLAYWRIGHT_AVAILABLE:
             logger.info(
-                "[%s] Playwright not installed, using Google News RSS fallback",
+                "[%s] Playwright not installed, using RSS+httpx fallback",
                 self.name,
             )
-            return await self._scrape_via_google_news()
+            return await self._scrape_via_rss()
 
         try:
             # 1. Initialize Playwright browser
             await self.init_browser()
             if not self._context:
                 logger.warning("[%s] Browser init failed, using Google News fallback", self.name)
-                return await self._scrape_via_google_news()
+                return await self._scrape_via_rss()
 
             # 2. Search for articles across all queries
             all_urls: list[str] = []
@@ -536,8 +544,8 @@ class GeoScraper(BaseScraper):
             )
 
             if not unique_urls:
-                logger.info("[%s] No Playwright URLs, trying Google News fallback", self.name)
-                return await self._scrape_via_google_news()
+                logger.info("[%s] No Playwright URLs, trying RSS fallback", self.name)
+                return await self._scrape_via_rss()
 
             # 4. Fetch full articles
             articles: list[dict[str, Any]] = []
@@ -564,8 +572,8 @@ class GeoScraper(BaseScraper):
             return articles
 
         except Exception as exc:
-            logger.error("[%s] Scrape pipeline error: %s — trying Google News fallback", self.name, exc)
-            return await self._scrape_via_google_news()
+            logger.error("[%s] Scrape pipeline error: %s — trying RSS fallback", self.name, exc)
+            return await self._scrape_via_rss()
 
         finally:
             await self.close_browser()
