@@ -25,6 +25,7 @@ class UNODCScraper(BaseScraper):
     schedule: str = "0 3 1 */3 *"
     priority: str = "P2"
     rate_limit_delay: float = 1.0
+    request_timeout: float = 60.0
 
     COUNTRY_CODE: str = "PAK"
 
@@ -135,28 +136,33 @@ class UNODCScraper(BaseScraper):
     async def download_gloact_reports(self) -> list[dict[str, Any]]:
         """Download GLO.ACT programme reports."""
         reports: list[dict[str, Any]] = []
-        try:
-            # Search UNODC publications page
-            response = await self.fetch(
-                "https://www.unodc.org/unodc/en/human-trafficking/glo-act/publications.html"
-            )
-            soup = BeautifulSoup(response.text, "lxml")
 
-            for link in soup.find_all("a", href=True):
-                href = link["href"]
-                text = link.get_text(strip=True)
+        # Search pages to try — GLO.ACT publications + COPAK fallback
+        search_pages: list[str] = [
+            "https://www.unodc.org/unodc/en/human-trafficking/glo-act/publications.html",
+            "https://www.unodc.org/pakistan/en/copak.html",
+        ]
 
-                if "pakistan" in text.lower() or "pakistan" in href.lower():
-                    full_url = href if href.startswith("http") else f"https://www.unodc.org{href}"
-                    reports.append({
-                        "title": text,
-                        "pdf_url": full_url,
-                        "is_pdf": href.lower().endswith(".pdf"),
-                        "source": self.name,
-                        "scraped_at": datetime.now(timezone.utc).isoformat(),
-                    })
-        except Exception as exc:
-            logger.warning("[%s] Error fetching GLO.ACT reports: %s", self.name, exc)
+        for page_url in search_pages:
+            try:
+                response = await self.fetch(page_url)
+                soup = BeautifulSoup(response.text, "lxml")
+
+                for link in soup.find_all("a", href=True):
+                    href = link["href"]
+                    text = link.get_text(strip=True)
+
+                    if "pakistan" in text.lower() or "pakistan" in href.lower():
+                        full_url = href if href.startswith("http") else f"https://www.unodc.org{href}"
+                        reports.append({
+                            "title": text,
+                            "pdf_url": full_url,
+                            "is_pdf": href.lower().endswith(".pdf"),
+                            "source": self.name,
+                            "scraped_at": datetime.now(timezone.utc).isoformat(),
+                        })
+            except Exception as exc:
+                logger.warning("[%s] Error fetching reports from %s: %s", self.name, page_url, exc)
 
         return reports
 

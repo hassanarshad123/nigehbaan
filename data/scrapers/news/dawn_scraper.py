@@ -69,10 +69,35 @@ class DawnScraper(BaseScraper):
     source_url: str = "https://dawn.com/feeds/home"
     schedule: str = "0 */6 * * *"
     priority: str = "P1"
+    use_firecrawl: bool = True  # Dawn RSS returns 403; use Firecrawl as fallback
 
     def __init__(self) -> None:
         super().__init__()
         self.keywords: list[str] = TRAFFICKING_KEYWORDS
+
+    async def _fetch_articles_via_firecrawl(self) -> list[dict[str, Any]]:
+        """Fallback: scrape Dawn homepage via Firecrawl when RSS is blocked."""
+        try:
+            fc_result = await self.fetch_via_firecrawl(
+                "https://www.dawn.com/latest-news", wait_for=2000,
+            )
+            if not fc_result.success or not fc_result.html:
+                return []
+            soup = BeautifulSoup(fc_result.html, "html.parser")
+            entries: list[dict[str, Any]] = []
+            for a_tag in soup.find_all("a", href=True):
+                href = a_tag["href"]
+                text = a_tag.get_text(strip=True)
+                if "/news/" in href and text and len(text) > 20:
+                    url = href if href.startswith("http") else f"https://www.dawn.com{href}"
+                    entries.append({"title": text, "url": url, "published_date": "", "summary": ""})
+            seen: set[str] = set()
+            unique = [e for e in entries if e["url"] not in seen and not seen.add(e["url"])]  # type: ignore[func-returns-value]
+            logger.info("[%s] Firecrawl fallback found %d article URLs", self.name, len(unique))
+            return unique[:30]
+        except Exception as exc:
+            logger.error("[%s] Firecrawl fallback failed: %s", self.name, exc)
+            return []
 
     async def fetch_rss(self) -> list[dict[str, Any]]:
         """Fetch and parse the Dawn RSS feed.
@@ -233,8 +258,11 @@ class DawnScraper(BaseScraper):
         Returns:
             List of article records matching trafficking keywords.
         """
-        # 1. Fetch RSS feed entries
+        # 1. Fetch RSS feed entries (falls back to Firecrawl if RSS is 403)
         rss_entries = await self.fetch_rss()
+        if not rss_entries and self.use_firecrawl:
+            logger.info("[%s] RSS failed, trying Firecrawl fallback", self.name)
+            rss_entries = await self._fetch_articles_via_firecrawl()
         if not rss_entries:
             logger.warning("[%s] No RSS entries found", self.name)
             return []

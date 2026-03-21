@@ -86,6 +86,7 @@ def process_article_ai(self, article_id: int) -> dict:
                 api_key=settings.openai_api_key,
                 model=settings.openai_model,
                 max_concurrent=settings.openai_max_concurrent,
+                base_url=settings.openai_api_base or None,
             )
 
             if not extractor.is_relevant(title, text):

@@ -35,6 +35,12 @@ WP_API_SEARCH_TERMS: list[str] = [
     "missing children",
     "kidnapping children",
     "human trafficking",
+    "rape",
+    "kidnap",
+    "missing child",
+    "sodomy",
+    "child labour",
+    "trafficking",
 ]
 
 _GOOGLE_NEWS_ARY_FALLBACK = (

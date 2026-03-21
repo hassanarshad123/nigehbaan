@@ -11,6 +11,7 @@ from typing import Any
 import asyncio
 import json
 import logging
+import os
 import random
 
 import httpx
@@ -66,7 +67,7 @@ class BaseScraper(ABC):
     """Abstract base class for all Nigehbaan scrapers.
 
     Provides common infrastructure: async HTTP client, rate limiting,
-    raw data storage, and run tracking.
+    raw data storage, run tracking, and optional Firecrawl integration.
 
     Subclasses must implement:
         - scrape(): Execute the scraping logic
@@ -77,6 +78,7 @@ class BaseScraper(ABC):
         source_url: The primary URL this scraper targets.
         schedule: Cron expression defining how often this scraper runs.
         priority: Priority tier (P0, P1, P2, P3) from sources.yaml.
+        use_firecrawl: Set True to route fetches through Firecrawl (WAF bypass, JS rendering).
     """
 
     name: str = "base"
@@ -89,6 +91,9 @@ class BaseScraper(ABC):
     request_timeout: float = 30.0
     max_retries: int = 3
 
+    # Firecrawl integration — opt-in per scraper
+    use_firecrawl: bool = False
+
     def __init__(self) -> None:
         self.run_id: str = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
         self._client: httpx.AsyncClient | None = None
@@ -96,16 +101,20 @@ class BaseScraper(ABC):
     async def get_client(self) -> httpx.AsyncClient:
         """Get or create the shared httpx async client."""
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(
-                timeout=httpx.Timeout(self.request_timeout),
-                follow_redirects=True,
-                headers={
+            proxy_url = os.environ.get("SCRAPER_PROXY_URL")
+            client_kwargs: dict[str, Any] = {
+                "timeout": httpx.Timeout(self.request_timeout),
+                "follow_redirects": True,
+                "headers": {
                     "User-Agent": random.choice(_USER_AGENTS),
                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                     "Accept-Language": "en-US,en;q=0.9,ur;q=0.8",
                     "Accept-Encoding": "gzip, deflate",
                 },
-            )
+            }
+            if proxy_url:
+                client_kwargs["proxy"] = proxy_url
+            self._client = httpx.AsyncClient(**client_kwargs)
         return self._client
 
     async def close(self) -> None:
@@ -179,6 +188,68 @@ class BaseScraper(ABC):
         """
         response = await self.fetch(url)
         return response.content
+
+    async def fetch_via_firecrawl(
+        self,
+        url: str,
+        wait_for: int = 0,
+        actions: list[dict[str, Any]] | None = None,
+    ) -> Any:
+        """Fetch a URL using Firecrawl for WAF bypass and JS rendering.
+
+        Falls back to direct HTTP fetch if Firecrawl is not configured.
+
+        Args:
+            url: URL to scrape.
+            wait_for: Milliseconds to wait for JS rendering.
+            actions: Browser actions (click, type, etc.).
+
+        Returns:
+            FirecrawlResponse with html, markdown, and metadata.
+        """
+        from data.scrapers.firecrawl_client import (
+            FirecrawlResponse,
+            firecrawl_scrape,
+            is_firecrawl_configured,
+        )
+
+        if not is_firecrawl_configured():
+            logger.warning(
+                "[%s] Firecrawl not configured, falling back to direct fetch",
+                self.name,
+            )
+            response = await self.fetch(url)
+            return FirecrawlResponse(
+                success=True,
+                html=response.text,
+                markdown="",
+                metadata={"status_code": response.status_code},
+            )
+
+        result = await firecrawl_scrape(
+            url=url,
+            timeout=self.request_timeout * 2,
+            wait_for=wait_for,
+            actions=actions,
+        )
+
+        if not result.success:
+            logger.warning(
+                "[%s] Firecrawl failed for %s (%s), falling back to direct fetch",
+                self.name, url, result.error,
+            )
+            try:
+                response = await self.fetch(url)
+                return FirecrawlResponse(
+                    success=True,
+                    html=response.text,
+                    markdown="",
+                    metadata={"status_code": response.status_code, "fallback": True},
+                )
+            except Exception:
+                return result
+
+        return result
 
     def matches_keywords(
         self, text: str, keywords: list[str] | None = None

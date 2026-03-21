@@ -45,11 +45,6 @@ celery_app.conf.beat_schedule = {
         "options": {"queue": "scraping"},
     },
     # ── Reports ───────────────────────────────────────────────────────
-    "sahil_checker": {
-        "task": "app.tasks.scraping_tasks.check_sahil_updates",
-        "schedule": crontab(minute=0, hour=3, day_of_month=1),  # monthly
-        "options": {"queue": "scraping"},
-    },
     "tip_report": {
         "task": "app.tasks.scraping_tasks.scrape_tip_report",
         "schedule": crontab(minute=0, hour=4, day_of_month=1, month_of_year=7),  # annually (July)
@@ -280,6 +275,79 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.scraping_tasks.scrape_news_geo_urdu",
         "schedule": crontab(minute=45, hour="2,8,14,20"),
         "options": {"queue": "scraping"},
+    },
+    # ── Phase 6: New API-based scrapers ──────────────────────────────
+    "dhs_api": {
+        "task": "app.tasks.scraping_tasks.scrape_dhs_api",
+        # quarterly
+        "schedule": crontab(minute=0, hour=15, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "scraping"},
+    },
+    "unicef_sdmx": {
+        "task": "app.tasks.scraping_tasks.scrape_unicef_sdmx",
+        # quarterly
+        "schedule": crontab(minute=30, hour=15, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "scraping"},
+    },
+    "jpp_data": {
+        "task": "app.tasks.scraping_tasks.scrape_jpp_data",
+        # quarterly
+        "schedule": crontab(minute=0, hour=16, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "scraping"},
+    },
+    "world_prison_brief": {
+        "task": "app.tasks.scraping_tasks.scrape_world_prison_brief",
+        "schedule": crontab(minute=30, hour=16, day_of_month=1, month_of_year=1),  # annually
+        "options": {"queue": "scraping"},
+    },
+    # ── Phase 7: New PDF-based scrapers ───────────────────────────────
+    "csj_conversion": {
+        "task": "app.tasks.scraping_tasks.scrape_csj_conversion",
+        "schedule": crontab(minute=0, hour=17, day_of_month=1, month_of_year=1),  # annually
+        "options": {"queue": "scraping"},
+    },
+    "provincial_labour_surveys": {
+        "task": "app.tasks.scraping_tasks.scrape_provincial_labour_surveys",
+        "schedule": crontab(minute=30, hour=17, day_of_month=1, month_of_year=1),  # annually
+        "options": {"queue": "scraping"},
+    },
+    "nchr_organ": {
+        "task": "app.tasks.scraping_tasks.scrape_nchr_organ",
+        "schedule": crontab(minute=0, hour=18, day_of_month=1, month_of_year=1),  # annually
+        "options": {"queue": "scraping"},
+    },
+    "sparc_reports": {
+        "task": "app.tasks.scraping_tasks.scrape_sparc_reports",
+        "schedule": crontab(minute=30, hour=18, day_of_month=1, month_of_year=1),  # annually
+        "options": {"queue": "scraping"},
+    },
+    # ── Phase 8: New HTML-based scrapers ──────────────────────────────
+    "girls_not_brides": {
+        "task": "app.tasks.scraping_tasks.scrape_girls_not_brides",
+        "schedule": crontab(minute=0, hour=19, day_of_month=1, month_of_year=1),  # annually
+        "options": {"queue": "scraping"},
+    },
+    "corporal_punishment": {
+        "task": "app.tasks.scraping_tasks.scrape_corporal_punishment",
+        "schedule": crontab(minute=30, hour=19, day_of_month=1, month_of_year=1),  # annually
+        "options": {"queue": "scraping"},
+    },
+    "roshni_helpline": {
+        "task": "app.tasks.scraping_tasks.scrape_roshni_helpline",
+        # quarterly
+        "schedule": crontab(minute=0, hour=20, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "scraping"},
+    },
+    # ── Monitoring ────────────────────────────────────────────────────
+    "scraper_health_check": {
+        "task": "app.tasks.scraping_tasks.scraper_health_check",
+        "schedule": crontab(minute="*/10"),  # every 10 minutes
+        "options": {"queue": "processing"},
+    },
+    "scraper_auto_upgrade": {
+        "task": "app.tasks.scraping_tasks.scraper_auto_upgrade",
+        "schedule": crontab(minute="5,15,25,35,45,55"),  # every 10 min, offset 5 from health check
+        "options": {"queue": "processing"},
     },
     # ── External data imports ────────────────────────────────────────
     "import_external_judgments": {

@@ -29,6 +29,7 @@ class MoHRChecker(BaseScraper):
     schedule: str = "0 3 25 * *"
     priority: str = "P1"
     rate_limit_delay: float = 2.0
+    request_timeout: float = 60.0
 
     KNOWN_REPORT_PATTERNS: list[str] = [
         "ZARRA_2019",
@@ -85,6 +86,24 @@ class MoHRChecker(BaseScraper):
                     continue
         except Exception as exc:
             logger.warning("[%s] Error scanning pages: %s", self.name, exc)
+
+        # Wayback Machine fallback if no PDFs discovered from live site
+        if not discovered_urls:
+            logger.info("[%s] Live site yielded 0 PDFs, trying Wayback Machine", self.name)
+            for pattern_name in self.KNOWN_REPORT_PATTERNS:
+                for template in self.URL_TEMPLATES:
+                    original_url = template.format(name=pattern_name)
+                    wayback_url = f"https://web.archive.org/web/2024/{original_url}"
+                    try:
+                        response = await client.head(wayback_url, follow_redirects=True)
+                        if response.status_code == 200:
+                            content_type = response.headers.get("content-type", "")
+                            if "pdf" in content_type.lower() or original_url.lower().endswith(".pdf"):
+                                discovered_urls.append(wayback_url)
+                                logger.info("[%s] Wayback fallback found PDF: %s", self.name, wayback_url)
+                                break
+                    except Exception:
+                        continue
 
         return discovered_urls
 

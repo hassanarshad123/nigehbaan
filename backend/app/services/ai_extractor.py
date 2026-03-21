@@ -217,25 +217,30 @@ class AIExtractor:
         api_key: str | None = None,
         model: str = "gpt-4o-mini",
         max_concurrent: int = 5,
+        base_url: str | None = None,
     ) -> None:
         self._api_key = api_key
         self._model = model
+        self._base_url = base_url
         self._semaphore = asyncio.Semaphore(max_concurrent)
         self._client: Any = None
 
     def _ensure_client(self) -> Any:
-        """Lazy-initialize the OpenAI async client."""
+        """Lazy-initialize the OpenAI async client (compatible with OpenRouter)."""
         if self._client is not None:
             return self._client
 
         if not self._api_key:
             raise ValueError(
-                "OpenAI API key not configured. Set OPENAI_API_KEY in .env"
+                "AI API key not configured. Set OPENAI_API_KEY in .env"
             )
 
         try:
             from openai import AsyncOpenAI
-            self._client = AsyncOpenAI(api_key=self._api_key)
+            kwargs: dict[str, Any] = {"api_key": self._api_key}
+            if self._base_url:
+                kwargs["base_url"] = self._base_url
+            self._client = AsyncOpenAI(**kwargs)
             return self._client
         except ImportError:
             raise ImportError(

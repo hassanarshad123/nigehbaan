@@ -3,10 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Phone } from 'lucide-react';
+import { Phone, RotateCcw } from 'lucide-react';
+import { useWelcomeStore } from '@/stores/welcomeStore';
 
 export function Footer() {
   const t = useTranslations('footer');
+  const resetWelcome = useWelcomeStore((s) => s.resetWelcome);
 
   return (
     <footer className="border-t border-[#334155] bg-[#0F172A] px-4 py-6">
@@ -40,6 +42,14 @@ export function Footer() {
 
           {/* Links and copyright */}
           <div className="flex items-center gap-4 text-xs text-[#94A3B8]">
+            <button
+              onClick={resetWelcome}
+              className="flex items-center gap-1 hover:text-[#F8FAFC] transition-default"
+            >
+              <RotateCcw className="h-3 w-3" />
+              Replay Intro
+            </button>
+            <span>|</span>
             <Link href="/about" className="hover:text-[#F8FAFC] transition-default">
               {t('about')}
             </Link>

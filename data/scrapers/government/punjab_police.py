@@ -32,12 +32,28 @@ class PunjabPoliceScraper(BaseScraper):
     schedule: str = "0 3 1 * *"
     priority: str = "P1"
     rate_limit_delay: float = 2.0
+    request_timeout: float = 60.0
 
     async def fetch_missing_persons(self) -> list[dict[str, Any]]:
         """Fetch and parse the quarterly missing persons list."""
         records: list[dict[str, Any]] = []
+        response = None
         try:
             response = await self.fetch(self.missing_url)
+        except Exception as exc:
+            logger.warning("[%s] Live fetch failed for missing persons: %s", self.name, exc)
+            # Wayback Machine fallback
+            wayback_url = f"https://web.archive.org/web/2024/{self.missing_url}"
+            try:
+                response = await self.fetch(wayback_url)
+                logger.info("[%s] Wayback fallback succeeded for missing persons", self.name)
+            except Exception as wb_exc:
+                logger.error("[%s] Wayback fallback also failed for missing persons: %s", self.name, wb_exc)
+
+        if not response:
+            return records
+
+        try:
             soup = BeautifulSoup(response.text, "lxml")
 
             tables = soup.find_all("table")
@@ -76,14 +92,29 @@ class PunjabPoliceScraper(BaseScraper):
                         })
 
         except Exception as exc:
-            logger.error("[%s] Error fetching missing persons: %s", self.name, exc)
+            logger.error("[%s] Error parsing missing persons: %s", self.name, exc)
         return records
 
     async def fetch_crime_statistics(self) -> list[dict[str, Any]]:
         """Fetch and parse crime statistics data."""
         records: list[dict[str, Any]] = []
+        response = None
         try:
             response = await self.fetch(self.crime_stats_url)
+        except Exception as exc:
+            logger.warning("[%s] Live fetch failed for crime stats: %s", self.name, exc)
+            # Wayback Machine fallback
+            wayback_url = f"https://web.archive.org/web/2024/{self.crime_stats_url}"
+            try:
+                response = await self.fetch(wayback_url)
+                logger.info("[%s] Wayback fallback succeeded for crime stats", self.name)
+            except Exception as wb_exc:
+                logger.error("[%s] Wayback fallback also failed for crime stats: %s", self.name, wb_exc)
+
+        if not response:
+            return records
+
+        try:
             soup = BeautifulSoup(response.text, "lxml")
 
             relevant_categories = {

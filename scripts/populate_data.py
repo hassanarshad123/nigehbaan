@@ -17,7 +17,6 @@ import os
 import random
 import re
 import ssl
-import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -456,7 +455,6 @@ async def load_existing_incidents(session: AsyncSession, districts: dict) -> int
         }
         incident_type = type_map.get(crime_type, "other")
 
-        geom_sql = "NULL"
         params = {
             "source_type": rec.get("source", "rss_monitor"),
             "source_url": source_url,

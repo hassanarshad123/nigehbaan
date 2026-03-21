@@ -48,6 +48,7 @@ class LHCScraper(BaseCourtScraper):
     name: str = "lhc"
     court_name: str = "Lahore High Court"
     source_url: str = "https://data.lhc.gov.pk/reported_judgments/"
+    use_firecrawl: bool = True  # LHC portal times out from server IPs
     schedule: str = "0 3 * * 2"
     priority: str = "P1"
 
@@ -81,6 +82,18 @@ class LHCScraper(BaseCourtScraper):
             "year": str(year),
             "page": str(page),
         }
+        # Try Firecrawl first for WAF bypass
+        if self.use_firecrawl:
+            for portal_url in self.PORTAL_URLS[:1]:
+                try:
+                    full_url = f"{portal_url}?section={section}&year={year}&page={page}"
+                    fc_result = await self.fetch_via_firecrawl(full_url, wait_for=3000)
+                    if fc_result.success and fc_result.html and len(fc_result.html) > 200:
+                        return fc_result.html
+                except Exception as exc:
+                    logger.warning("[%s] Firecrawl failed for %s: %s", self.name, portal_url, exc)
+
+        # Fallback to direct fetch
         for portal_url in self.PORTAL_URLS:
             try:
                 response = await self.fetch(

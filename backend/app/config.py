@@ -20,10 +20,15 @@ class Settings(BaseSettings):
     aws_region: str = "us-east-1"
     mapbox_token: str = ""
 
-    # OpenAI settings for AI extraction
+    # AI extraction settings (OpenAI-compatible: works with OpenRouter, etc.)
     openai_api_key: str = ""
+    openai_api_base: str = ""  # e.g. "https://openrouter.ai/api/v1"
     openai_model: str = "gpt-4o-mini"
     openai_max_concurrent: int = 5
+
+    # Firecrawl settings (self-hosted)
+    firecrawl_api_url: str = ""  # e.g. "http://72.61.124.88:3002"
+    firecrawl_api_key: str = ""
 
     # External Neon DB for court judgment import (READ ONLY)
     external_judgments_db_url: str = ""

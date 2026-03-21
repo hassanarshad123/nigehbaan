@@ -186,7 +186,7 @@ export function MapContainer() {
     activeLayers.includes(layerId as never) ? 'visible' : 'none';
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0" data-tour-step="incidents">
       {/* Loading overlay — shown while fetching initial map data */}
       {loading && !boundaries && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0F172A]/80 backdrop-blur-sm transition-opacity duration-500">

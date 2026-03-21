@@ -560,8 +560,9 @@ def check_sahil_updates(self) -> dict:
     async def _run():
         try:
             records = await _run_scraper(
-                "data.scrapers.government.mohr_checker", "MoHRChecker"
+                "data.scrapers.government.sahil", "SahilScraper"
             )
+            await _save_statistical_reports(records, "sahil")
             await _update_data_source("sahil", len(records))
             return {"status": "completed", "new_reports": len(records)}
         except Exception as exc:
@@ -611,8 +612,9 @@ def update_ctdc(self) -> dict:
         records = await _run_scraper(
             "data.scrapers.international.unodc", "UNODCScraper"
         )
+        saved = await _save_statistical_reports(records, "unodc")
         await _update_data_source("ctdc", len(records))
-        return {"status": "completed", "records_updated": len(records)}
+        return {"status": "completed", "records_updated": len(records), "saved": saved}
 
     return _run_async(_run())
 
@@ -1198,3 +1200,196 @@ def scrape_news_geo_urdu(self) -> dict:
     """Scrape Geo Urdu news."""
     logger.info("Scraping Geo Urdu")
     return _make_news_task("data.scrapers.news.geo_urdu", "GeoUrduScraper", "geo_urdu")
+
+
+# ---------------------------------------------------------------------------
+# Phase 6: New API-based scrapers
+# ---------------------------------------------------------------------------
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_dhs_api", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_dhs_api(self) -> dict:
+    """Scrape DHS Program API for Pakistan child indicators."""
+    logger.info("Scraping DHS API")
+    return _make_stat_task("data.scrapers.international.dhs_api", "DHSAPIScraper", "dhs_api")
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_unicef_sdmx", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_unicef_sdmx(self) -> dict:
+    """Scrape UNICEF SDMX API for child protection indicators."""
+    logger.info("Scraping UNICEF SDMX")
+    return _make_stat_task(
+        "data.scrapers.international.unicef_sdmx", "UNICEFSDMXScraper", "unicef_sdmx",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_jpp_data", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_jpp_data(self) -> dict:
+    """Scrape Justice Project Pakistan data portal."""
+    logger.info("Scraping JPP Data")
+    return _make_stat_task("data.scrapers.international.jpp_data", "JPPDataScraper", "jpp_data")
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_world_prison_brief", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_world_prison_brief(self) -> dict:
+    """Scrape World Prison Brief Pakistan country data."""
+    logger.info("Scraping World Prison Brief")
+    return _make_stat_task(
+        "data.scrapers.international.world_prison_brief",
+        "WorldPrisonBriefScraper", "world_prison_brief",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 7: New PDF-based scrapers
+# ---------------------------------------------------------------------------
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_csj_conversion", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_csj_conversion(self) -> dict:
+    """Scrape CSJ Pakistan forced conversion publications."""
+    logger.info("Scraping CSJ Conversion")
+    return _make_stat_task(
+        "data.scrapers.government.csj_conversion", "CSJConversionScraper", "csj_conversion",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_provincial_labour_surveys", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_provincial_labour_surveys(self) -> dict:
+    """Scrape provincial labour survey data for child labor stats."""
+    logger.info("Scraping Provincial Labour Surveys")
+    return _make_stat_task(
+        "data.scrapers.government.provincial_labour_surveys",
+        "ProvincialLabourSurveysScraper", "provincial_labour_surveys",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_nchr_organ", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_nchr_organ(self) -> dict:
+    """Scrape NCHR organ trafficking study data."""
+    logger.info("Scraping NCHR Organ")
+    return _make_stat_task(
+        "data.scrapers.government.nchr_organ", "NCHROrganScraper", "nchr_organ",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_sparc_reports", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_sparc_reports(self) -> dict:
+    """Scrape SPARC State of Pakistan's Children reports."""
+    logger.info("Scraping SPARC Reports")
+    return _make_stat_task(
+        "data.scrapers.government.sparc_reports", "SPARCReportsScraper", "sparc_reports",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 8: New HTML-based scrapers
+# ---------------------------------------------------------------------------
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_girls_not_brides", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_girls_not_brides(self) -> dict:
+    """Scrape Girls Not Brides child marriage atlas for Pakistan."""
+    logger.info("Scraping Girls Not Brides")
+    return _make_stat_task(
+        "data.scrapers.international.girls_not_brides",
+        "GirlsNotBridesScraper", "girls_not_brides",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_corporal_punishment", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_corporal_punishment(self) -> dict:
+    """Scrape End Corporal Punishment Pakistan legal status."""
+    logger.info("Scraping Corporal Punishment")
+    return _make_stat_task(
+        "data.scrapers.international.corporal_punishment",
+        "CorporalPunishmentScraper", "corporal_punishment",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_roshni_helpline", bind=True,
+    max_retries=3, autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_roshni_helpline(self) -> dict:
+    """Scrape Roshni Helpline missing children recovery stats."""
+    logger.info("Scraping Roshni Helpline")
+    return _make_stat_task(
+        "data.scrapers.government.roshni_helpline",
+        "RoshniHelplineScraper", "roshni_helpline",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Monitoring tasks
+# ---------------------------------------------------------------------------
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scraper_health_check",
+    bind=True,
+    max_retries=1,
+)
+def scraper_health_check(self) -> dict:
+    """Run scraper health monitor and generate SCRAPER_HEALTH.md."""
+    logger.info("Running scraper health check")
+    import subprocess
+    import sys
+    result = subprocess.run(
+        [sys.executable, "scripts/scraper_monitor.py"],
+        capture_output=True, text=True, timeout=1800,
+        cwd="/app",
+    )
+    return {
+        "status": "completed" if result.returncode == 0 else "error",
+        "stdout_lines": result.stdout.count("\n"),
+        "stderr": result.stderr[:500] if result.stderr else "",
+    }
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scraper_auto_upgrade",
+    bind=True,
+    max_retries=1,
+)
+def scraper_auto_upgrade(self) -> dict:
+    """Run auto-upgrade loop to fix failed scrapers at runtime."""
+    logger.info("Running scraper auto-upgrade")
+    import subprocess
+    import sys
+    result = subprocess.run(
+        [sys.executable, "scripts/auto_upgrade_loop.py"],
+        capture_output=True, text=True, timeout=1800,
+        cwd="/app",
+    )
+    return {
+        "status": "completed" if result.returncode == 0 else "error",
+        "stdout_lines": result.stdout.count("\n"),
+        "stderr": result.stderr[:500] if result.stderr else "",
+    }

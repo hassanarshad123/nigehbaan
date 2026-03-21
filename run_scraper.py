@@ -70,6 +70,20 @@ SCRAPERS = {
     # --- Phase 4: Cross-border scrapers ---
     "ctdc_dataset": ("data.scrapers.international.ctdc_dataset", "CTDCDatasetScraper"),
     "brookings_bride": ("data.scrapers.international.brookings_bride", "BrookingsBrideScraper"),
+    # --- Phase 6: New API-based scrapers ---
+    "dhs_api": ("data.scrapers.international.dhs_api", "DHSAPIScraper"),
+    "unicef_sdmx": ("data.scrapers.international.unicef_sdmx", "UNICEFSDMXScraper"),
+    "jpp_data": ("data.scrapers.international.jpp_data", "JPPDataScraper"),
+    "world_prison_brief": ("data.scrapers.international.world_prison_brief", "WorldPrisonBriefScraper"),
+    # --- Phase 7: New PDF-based scrapers ---
+    "csj_conversion": ("data.scrapers.government.csj_conversion", "CSJConversionScraper"),
+    "provincial_labour_surveys": ("data.scrapers.government.provincial_labour_surveys", "ProvincialLabourSurveysScraper"),
+    "nchr_organ": ("data.scrapers.government.nchr_organ", "NCHROrganScraper"),
+    "sparc_reports": ("data.scrapers.government.sparc_reports", "SPARCReportsScraper"),
+    # --- Phase 8: New HTML-based scrapers ---
+    "girls_not_brides": ("data.scrapers.international.girls_not_brides", "GirlsNotBridesScraper"),
+    "corporal_punishment": ("data.scrapers.international.corporal_punishment", "CorporalPunishmentScraper"),
+    "roshni_helpline": ("data.scrapers.government.roshni_helpline", "RoshniHelplineScraper"),
     # --- Phase 5: Urdu news scrapers ---
     "jang_urdu": ("data.scrapers.news.jang_urdu", "JangUrduScraper"),
     "express_urdu": ("data.scrapers.news.express_urdu", "ExpressUrduScraper"),

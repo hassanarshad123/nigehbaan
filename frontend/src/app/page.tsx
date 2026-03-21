@@ -1,19 +1,39 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
 import { LiveCounter } from '@/components/map/LiveCounter';
 import { SearchBar } from '@/components/map/SearchBar';
 import { MobileMapControls } from '@/components/map/MobileMapControls';
 import { TimeSlider } from '@/components/map/TimeSlider';
+import { useWelcomeStore } from '@/stores/welcomeStore';
 
 const MapContainer = dynamic(
   () => import('@/components/map/MapContainer').then((mod) => mod.MapContainer),
   { ssr: false },
 );
 
+const WelcomeOverlay = dynamic(
+  () => import('@/components/welcome/WelcomeOverlay').then((m) => m.WelcomeOverlay),
+  { ssr: false },
+);
+
+const MapTour = dynamic(
+  () => import('@/components/welcome/MapTour').then((m) => m.MapTour),
+  { ssr: false },
+);
+
 export default function HomePage() {
+  const mounted = useWelcomeStore((s) => s.mounted);
+  const hasSeenIntro = useWelcomeStore((s) => s.hasSeenIntro);
+  const hasSeenTour = useWelcomeStore((s) => s.hasSeenTour);
+  const setMounted = useWelcomeStore((s) => s.setMounted);
+
+  useEffect(() => {
+    setMounted();
+  }, [setMounted]);
+
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       {/* Full-screen map */}
@@ -45,6 +65,12 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Welcome animation — first visit only */}
+      {mounted && !hasSeenIntro && <WelcomeOverlay />}
+
+      {/* Map tour — after animation, first visit only */}
+      {mounted && hasSeenIntro && !hasSeenTour && <MapTour />}
     </div>
   );
 }

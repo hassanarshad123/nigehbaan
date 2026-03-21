@@ -230,6 +230,11 @@ class BaseCourtScraper(BaseScraper):
     ) -> list[dict[str, Any]]:
         """Filter cases to only those involving relevant PPC sections.
 
+        Note: If cases were already returned by a PPC-section-specific search,
+        use skip_relevance_filter=True in scrape_year_range() to avoid
+        discarding valid results (Pakistani case titles often don't contain
+        section numbers — they're just party names like 'State vs Ali').
+
         Args:
             cases: List of case reference dicts from search_cases().
 
@@ -254,12 +259,17 @@ class BaseCourtScraper(BaseScraper):
         self,
         start_year: int | None = None,
         end_year: int | None = None,
+        skip_relevance_filter: bool = True,
     ) -> list[dict[str, Any]]:
         """Search across a range of years and collect results.
 
         Args:
             start_year: First year to search (default: current - 3).
             end_year: Last year to search (default: current).
+            skip_relevance_filter: If True, trust that search_cases()
+                already searched for relevant PPC sections and skip the
+                redundant PPC text filter. Default True because Pakistani
+                court case titles rarely contain explicit section numbers.
 
         Returns:
             Combined list of case records across all years.
@@ -272,10 +282,14 @@ class BaseCourtScraper(BaseScraper):
         for year in range(start, end + 1):
             try:
                 cases = await self.search_cases(year)
-                relevant = self.filter_relevant_cases(cases)
+                if skip_relevance_filter:
+                    relevant = cases
+                else:
+                    relevant = self.filter_relevant_cases(cases)
                 logger.info(
-                    "[%s] Year %d: %d cases found, %d relevant",
+                    "[%s] Year %d: %d cases found, %d used (filter=%s)",
                     self.name, year, len(cases), len(relevant),
+                    "off" if skip_relevance_filter else "on",
                 )
                 for case in relevant:
                     metadata = self.extract_metadata(case)

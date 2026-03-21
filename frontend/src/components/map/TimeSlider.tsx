@@ -32,7 +32,7 @@ export function TimeSlider() {
   );
 
   return (
-    <div className="rounded-lg border border-[#334155]/60 bg-[#1E293B]/80 backdrop-blur-md px-4 py-3 w-full max-w-sm mx-auto">
+    <div className="rounded-lg border border-[#334155]/60 bg-[#1E293B]/80 backdrop-blur-md px-4 py-3 w-full max-w-sm mx-auto" data-tour-step="timeline">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <Calendar className="h-3.5 w-3.5 text-[#06B6D4]" />

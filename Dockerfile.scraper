@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir playwright && python -m playwright install chromium --with-deps
 
 # Copy backend application code
 COPY backend/ ./backend/

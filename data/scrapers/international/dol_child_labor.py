@@ -30,6 +30,8 @@ class DOLChildLaborScraper(BaseScraper):
     schedule: str = "0 3 15 10 *"
     priority: str = "P1"
     rate_limit_delay: float = 2.0
+    request_timeout: float = 60.0
+    use_firecrawl: bool = True  # DOL is behind Cloudflare JS challenge
 
     async def fetch_country_page(self) -> str:
         """Fetch the DOL ILAB Pakistan country page."""
@@ -41,6 +43,7 @@ class DOLChildLaborScraper(BaseScraper):
         soup = BeautifulSoup(html, "lxml")
         reports: list[dict[str, Any]] = []
 
+        # Primary: search all <a> tags
         for link in soup.find_all("a", href=True):
             href = link["href"]
             text = link.get_text(strip=True)
@@ -69,6 +72,28 @@ class DOLChildLaborScraper(BaseScraper):
                     "scraped_at": datetime.now(timezone.utc).isoformat(),
                 })
 
+        # Fallback: search for links inside article/section/div containers
+        if not reports:
+            for container in soup.find_all(["article", "section", "div"]):
+                for link in container.find_all("a", href=True):
+                    href = link["href"]
+                    text = link.get_text(strip=True)
+                    combined = f"{text} {href}".lower()
+                    if any(kw in combined for kw in ["finding", "report", "child labor", "pakistan", ".pdf"]):
+                        full_url = href if href.startswith("http") else f"https://www.dol.gov{href}"
+                        year = None
+                        year_match = re.search(r"20[0-2]\d", text) or re.search(r"20[0-2]\d", href)
+                        if year_match:
+                            year = int(year_match.group())
+                        reports.append({
+                            "title": text,
+                            "pdf_url": full_url,
+                            "year": year,
+                            "is_pdf": href.lower().endswith(".pdf"),
+                            "source": self.name,
+                            "scraped_at": datetime.now(timezone.utc).isoformat(),
+                        })
+
         # Deduplicate by URL
         seen: set[str] = set()
         unique: list[dict[str, Any]] = []
@@ -89,9 +114,43 @@ class DOLChildLaborScraper(BaseScraper):
 
     async def scrape(self) -> list[dict[str, Any]]:
         """Execute the DOL ILAB scraping pipeline."""
-        html = await self.fetch_country_page()
-        reports = self.extract_report_links(html)
-        logger.info("[%s] Found %d report links", self.name, len(reports))
+        # Try Firecrawl first (JS-rendered page), then direct fetch
+        if self.use_firecrawl:
+            fc_result = await self.fetch_via_firecrawl(self.source_url)
+            html = fc_result.html if fc_result.success else ""
+        else:
+            try:
+                html = await self.fetch_country_page()
+            except Exception:
+                html = ""
+
+        reports = self.extract_report_links(html) if html else []
+        logger.info("[%s] Found %d report links from page", self.name, len(reports))
+
+        # Hardcoded PDF URL fallback — DOL blocks HEAD so use GET with stream
+        if not reports:
+            logger.info("[%s] Probing known PDF URL patterns via GET", self.name)
+            client = await self.get_client()
+            for year in range(2018, 2026):
+                pdf_url = f"https://www.dol.gov/sites/dolgov/files/ILAB/child_labor/tda{year}/Pakistan.pdf"
+                try:
+                    probe = await client.get(
+                        pdf_url,
+                        follow_redirects=True,
+                        headers={"Range": "bytes=0-0"},
+                    )
+                    if probe.status_code in (200, 206):
+                        reports.append({
+                            "title": f"Pakistan Child Labor Report {year}",
+                            "pdf_url": pdf_url,
+                            "year": year,
+                            "is_pdf": True,
+                            "source": self.name,
+                            "scraped_at": datetime.now(timezone.utc).isoformat(),
+                        })
+                        logger.info("[%s] Hardcoded probe found: %s", self.name, pdf_url)
+                except Exception:
+                    continue
 
         raw_dir = self.get_raw_dir() / "pdfs"
         raw_dir.mkdir(parents=True, exist_ok=True)

@@ -12,7 +12,7 @@ export function MobileMapControls() {
   return (
     <>
       {/* Desktop: always show both components */}
-      <div className="hidden sm:block space-y-2">
+      <div className="hidden sm:block space-y-2" data-tour-step="layers">
         <LayerControls />
         <MapLegend />
       </div>

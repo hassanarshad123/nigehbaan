@@ -57,6 +57,7 @@ class SCPScraper(BaseCourtScraper):
     source_url: str = "https://supremecourt.nadra.gov.pk/judgement-search/"
     schedule: str = "0 3 * * 1"
     priority: str = "P1"
+    use_firecrawl: bool = True  # NADRA WAF blocks server IPs
 
     async def _fetch_results_page(
         self,
@@ -79,6 +80,17 @@ class SCPScraper(BaseCourtScraper):
             "case_type": case_type,
             "page": str(page),
         }
+        # Use Firecrawl to bypass NADRA WAF if configured
+        if self.use_firecrawl:
+            try:
+                fc_result = await self.fetch_via_firecrawl(
+                    self.source_url, wait_for=3000,
+                )
+                if fc_result.success and fc_result.html:
+                    return fc_result.html
+            except Exception as exc:
+                logger.warning("[%s] Firecrawl failed, trying direct: %s", self.name, exc)
+
         response = await self.fetch(
             self.source_url,
             method="POST",

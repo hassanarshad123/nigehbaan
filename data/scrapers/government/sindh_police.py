@@ -33,6 +33,7 @@ class SindhPoliceScraper(BaseScraper):
     rate_limit_delay: float = 2.0
     request_timeout: float = 60.0
     max_retries: int = 5
+    use_firecrawl: bool = True  # Sindh Police WAF blocks server IPs
 
     CRIME_STATS_URLS: list[str] = [
         "https://sindhpolice.gov.pk/announcements/crime_stat_all_cities.html",
@@ -57,8 +58,22 @@ class SindhPoliceScraper(BaseScraper):
                 logger.warning("[%s] Failed to fetch %s: %s", self.name, url, exc)
                 continue
 
+        # Wayback Machine fallback if all live URLs failed
         if not response:
-            logger.error("[%s] All crime stats URLs failed", self.name)
+            logger.warning("[%s] All live crime stats URLs failed, trying Wayback Machine", self.name)
+            for url in self.CRIME_STATS_URLS:
+                wayback_url = f"https://web.archive.org/web/2024/{url}"
+                try:
+                    response = await self.fetch(wayback_url)
+                    if response.status_code == 200:
+                        logger.info("[%s] Wayback fallback succeeded for %s", self.name, url)
+                        break
+                except Exception as exc:
+                    logger.warning("[%s] Wayback fallback failed for %s: %s", self.name, url, exc)
+                    continue
+
+        if not response:
+            logger.error("[%s] All crime stats URLs failed (including Wayback)", self.name)
             return records
 
         try:
@@ -115,13 +130,26 @@ class SindhPoliceScraper(BaseScraper):
     async def fetch_missing_persons(self) -> list[dict[str, Any]]:
         """Fetch missing persons data if the page is accessible."""
         is_available = await self.check_missing_persons()
-        if not is_available:
-            logger.info("[%s] Missing persons page unavailable, skipping", self.name)
-            return []
+        response = None
+
+        if is_available:
+            try:
+                response = await self.fetch(self.missing_url)
+            except Exception as exc:
+                logger.warning("[%s] Live missing persons fetch failed: %s", self.name, exc)
+
+        # Wayback Machine fallback
+        if not response:
+            wayback_url = f"https://web.archive.org/web/2024/{self.missing_url}"
+            try:
+                response = await self.fetch(wayback_url)
+                logger.info("[%s] Wayback fallback succeeded for missing persons", self.name)
+            except Exception as exc:
+                logger.info("[%s] Missing persons page unavailable (incl. Wayback): %s", self.name, exc)
+                return []
 
         records: list[dict[str, Any]] = []
         try:
-            response = await self.fetch(self.missing_url)
             soup = BeautifulSoup(response.text, "lxml")
 
             for table in soup.find_all("table"):
@@ -139,7 +167,7 @@ class SindhPoliceScraper(BaseScraper):
                     record["scraped_at"] = datetime.now(timezone.utc).isoformat()
                     records.append(record)
         except Exception as exc:
-            logger.error("[%s] Error fetching missing persons: %s", self.name, exc)
+            logger.error("[%s] Error parsing missing persons: %s", self.name, exc)
         return records
 
     async def scrape(self) -> list[dict[str, Any]]:

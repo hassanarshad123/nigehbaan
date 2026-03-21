@@ -1,0 +1,10 @@
+{
+  "_doc": "Runtime overrides per scraper. Checked by auto_upgrade_loop.py",
+  "_schema": {
+    "timeout_override": "float — override request_timeout for this scraper",
+    "wayback_fallback": "bool — force Wayback Machine fallback",
+    "extra_search_terms": "list[str] — additional search terms",
+    "disabled": "bool — skip this scraper entirely",
+    "proxy_required": "bool — requires proxy to work"
+  }
+}

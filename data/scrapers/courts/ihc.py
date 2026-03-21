@@ -58,6 +58,7 @@ class IHCScraper(BaseCourtScraper):
     source_url: str = "https://mis.ihc.gov.pk/frmCseSrch"
     schedule: str = "0 3 * * 6"
     priority: str = "P1"
+    request_timeout: float = 60.0
 
     async def get_viewstate(self) -> dict[str, str]:
         """Fetch the IHC search page and extract ASP.NET tokens.
@@ -119,6 +120,7 @@ class IHCScraper(BaseCourtScraper):
         form_data["ctl00$ContentPlaceHolder1$txtYear"] = str(year)
         form_data["ctl00$ContentPlaceHolder1$ddlCaseType"] = case_type or "Criminal"
         form_data["ctl00$ContentPlaceHolder1$btnSearch"] = "Search"
+        form_data["ctl00$ContentPlaceHolder1$txtKeyword"] = "trafficking 370 366-A 377"
 
         headers = {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -311,6 +313,9 @@ class IHCScraper(BaseCourtScraper):
         GET page -> extract tokens -> POST search -> parse results
         -> handle pagination.
 
+        Searches multiple case types: Criminal, Criminal Appeal,
+        and Criminal Revision for broader coverage.
+
         Args:
             year: Year to search.
             case_type: Optional case type filter.
@@ -319,50 +324,65 @@ class IHCScraper(BaseCourtScraper):
             List of case reference dicts from search results.
         """
         all_cases: list[dict[str, Any]] = []
+        seen_case_numbers: set[str] = set()
 
-        try:
-            # Step 1: Get initial ViewState tokens
-            viewstate = await self.get_viewstate()
-            if not viewstate:
-                logger.warning("[%s] Failed to get ViewState for year %d", self.name, year)
-                return []
+        # Search multiple case types for broader coverage
+        case_types_to_search: list[str] = (
+            [case_type] if case_type
+            else ["Criminal", "Criminal Appeal", "Criminal Revision"]
+        )
 
-            # Step 2: Submit search form
-            result_html = await self.submit_search(viewstate, year, case_type)
+        for ct in case_types_to_search:
+            try:
+                # Step 1: Get initial ViewState tokens (fresh for each case type)
+                viewstate = await self.get_viewstate()
+                if not viewstate:
+                    logger.warning("[%s] Failed to get ViewState for year %d, type %s", self.name, year, ct)
+                    continue
 
-            # Step 3: Parse first page of results
-            first_page_cases = self._parse_results_table(result_html)
-            all_cases.extend(first_page_cases)
+                # Step 2: Submit search form
+                result_html = await self.submit_search(viewstate, year, ct)
 
-            # Step 4: Determine total pages and paginate
-            total_pages = self._get_total_pages(result_html)
-            current_viewstate = self._extract_viewstate_from_html(result_html)
+                # Step 3: Parse first page of results
+                first_page_cases = self._parse_results_table(result_html)
 
-            for page_num in range(2, total_pages + 1):
-                try:
-                    if not current_viewstate:
+                # Step 4: Determine total pages and paginate
+                total_pages = self._get_total_pages(result_html)
+                current_viewstate = self._extract_viewstate_from_html(result_html)
+
+                page_cases_all = list(first_page_cases)
+                for page_num in range(2, total_pages + 1):
+                    try:
+                        if not current_viewstate:
+                            break
+                        page_html = await self.handle_pagination(
+                            current_viewstate, page_num
+                        )
+                        page_cases = self._parse_results_table(page_html)
+                        if not page_cases:
+                            break
+                        page_cases_all.extend(page_cases)
+                        # Update ViewState for next page
+                        current_viewstate = self._extract_viewstate_from_html(page_html)
+                    except Exception as exc:
+                        logger.warning(
+                            "[%s] Error on page %d for year %d type %s: %s",
+                            self.name, page_num, year, ct, exc,
+                        )
                         break
-                    page_html = await self.handle_pagination(
-                        current_viewstate, page_num
-                    )
-                    page_cases = self._parse_results_table(page_html)
-                    if not page_cases:
-                        break
-                    all_cases.extend(page_cases)
-                    # Update ViewState for next page
-                    current_viewstate = self._extract_viewstate_from_html(page_html)
-                except Exception as exc:
-                    logger.warning(
-                        "[%s] Error on page %d for year %d: %s",
-                        self.name, page_num, year, exc,
-                    )
-                    break
 
-        except Exception as exc:
-            logger.error(
-                "[%s] Error searching year %d: %s",
-                self.name, year, exc,
-            )
+                # Deduplicate by case_number across case types
+                for case in page_cases_all:
+                    cn = case.get("case_number", "")
+                    if cn not in seen_case_numbers:
+                        seen_case_numbers.add(cn)
+                        all_cases.append(case)
+
+            except Exception as exc:
+                logger.error(
+                    "[%s] Error searching year %d type %s: %s",
+                    self.name, year, ct, exc,
+                )
 
         logger.info(
             "[%s] Found %d total cases for year %d",

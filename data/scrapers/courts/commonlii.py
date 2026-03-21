@@ -40,7 +40,7 @@ PAKISTAN_INDEX_URL = "https://www.commonlii.org/resources/245.html"
 
 # Patterns to identify judgment page URLs on CommonLII
 JUDGMENT_URL_PATTERN = re.compile(
-    r"/pk/(cases|legis)/\w+/\d{4}/\d+\.html", re.IGNORECASE
+    r"/pk/(cases|legis|other|journals)/\w+/\d{4}/\d+\.html", re.IGNORECASE
 )
 
 # Pattern to extract year from CommonLII judgment URLs
@@ -211,6 +211,34 @@ class CommonLIIScraper(BaseCourtScraper):
                 continue
 
         # De-duplicate
+        judgment_urls = list(dict.fromkeys(judgment_urls))
+
+        # Fallback: direct search via CommonLII search engine
+        if not judgment_urls:
+            logger.info("[%s] No URLs from crawl, trying CommonLII search fallback", self.name)
+            search_url = (
+                "https://www.commonlii.org/cgi-bin/sinosrch.cgi?"
+                "mask_path=pk&method=auto&query=trafficking+child+abuse+366-A+370+377"
+            )
+            try:
+                search_links = await self._crawl_index_page(search_url)
+                for link in search_links:
+                    if JUDGMENT_URL_PATTERN.search(link) and link not in judgment_urls:
+                        judgment_urls.append(link)
+            except Exception as exc:
+                logger.warning("[%s] CommonLII search fallback failed: %s", self.name, exc)
+
+        # Last-resort: try PakistanLawSite search
+        if not judgment_urls:
+            logger.info("[%s] Trying PakistanLawSite as last-resort", self.name)
+            try:
+                pls_links = await self._crawl_index_page("https://pakistanlawsite.com/Search")
+                for link in pls_links:
+                    if link not in judgment_urls:
+                        judgment_urls.append(link)
+            except Exception as exc:
+                logger.warning("[%s] PakistanLawSite fallback failed: %s", self.name, exc)
+
         judgment_urls = list(dict.fromkeys(judgment_urls))
         self._discovered_urls = judgment_urls
 
