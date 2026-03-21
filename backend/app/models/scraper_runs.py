@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text
 
-from app.database import Base
+from app.models.base import Base
 
 
 class ScraperRun(Base):
