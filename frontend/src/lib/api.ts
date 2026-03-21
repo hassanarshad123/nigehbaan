@@ -305,6 +305,63 @@ export function fetchScrapersSummary(): Promise<ScrapersSummaryResponse> {
   return apiFetch('/scrapers/summary');
 }
 
+// ── Scraper Command Center ──────────────────────────────────
+
+export interface ScraperRunResponse {
+  id: number;
+  scraperName: string;
+  status: 'pending' | 'running' | 'success' | 'error';
+  startedAt: string | null;
+  completedAt: string | null;
+  recordsFound: number;
+  recordsSaved: number;
+  errorMessage: string | null;
+  durationSeconds: number | null;
+  triggeredBy: string | null;
+}
+
+export interface TriggerResponse {
+  success: boolean;
+  taskId: string | null;
+  scraperName: string;
+  message: string;
+}
+
+export interface QueueStatsResponse {
+  activeTasks: number;
+  reservedTasks: number;
+  scheduledTasks: number;
+  activeDetails: Array<{ id: string; name: string; startedAt: number | null }>;
+}
+
+export function fetchScraperActivity(limit = 50): Promise<ScraperRunResponse[]> {
+  return apiFetch(`/scrapers/activity?limit=${limit}`);
+}
+
+export function fetchScraperLogs(name: string, limit = 20): Promise<ScraperRunResponse[]> {
+  return apiFetch(`/scrapers/${name}/logs?limit=${limit}`);
+}
+
+export function fetchQueueStats(): Promise<QueueStatsResponse> {
+  return apiFetch('/scrapers/queue');
+}
+
+export function triggerScraper(name: string): Promise<TriggerResponse> {
+  return apiFetch(`/scrapers/${name}/trigger`, { method: 'POST' });
+}
+
+export function triggerAllScrapers(): Promise<TriggerResponse[]> {
+  return apiFetch('/scrapers/trigger-all', { method: 'POST' });
+}
+
+export function stopScraper(name: string, taskId: string): Promise<TriggerResponse> {
+  return apiFetch(`/scrapers/${name}/stop?task_id=${taskId}`, { method: 'POST' });
+}
+
+export function toggleScraper(name: string): Promise<TriggerResponse> {
+  return apiFetch(`/scrapers/${name}/toggle`, { method: 'POST' });
+}
+
 // ── Admin / Reports ────────────────────────────────────────────
 
 export interface PendingReportItem {
