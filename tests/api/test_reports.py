@@ -240,8 +240,8 @@ async def test_reference_number_persisted():
 async def test_list_reports_default():
     """GET /reports/ should return a list."""
     status, body = await api_get("/api/v1/reports/")
-    if status == 503:
-        pytest.skip("DB unavailable")
+    if status in {503, 429}:
+        pytest.skip("DB unavailable or rate-limited")
     assert status in {200, 500}
     if status == 200:
         assert isinstance(body, list)
@@ -251,8 +251,8 @@ async def test_list_reports_default():
 async def test_list_reports_filter_status():
     """GET /reports/?status=pending should return only pending reports."""
     status, body = await api_get("/api/v1/reports/", status="pending")
-    if status == 503:
-        pytest.skip("DB unavailable")
+    if status in {503, 429}:
+        pytest.skip("DB unavailable or rate-limited")
     assert status in {200, 500}
     if status == 200 and body is not None:
         assert isinstance(body, list)
