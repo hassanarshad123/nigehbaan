@@ -188,7 +188,7 @@ export default function ScrapersCommandCenter() {
               {/* Scraper list */}
               <div className="flex-1 overflow-hidden border-b border-[#334155]">
                 <div className="px-3 py-2">
-                  <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
                     Scrapers
                   </h3>
                 </div>
@@ -198,7 +198,7 @@ export default function ScrapersCommandCenter() {
               {/* Activity feed */}
               <div className="flex-shrink-0 overflow-hidden">
                 <div className="px-3 py-2 border-b border-[#334155]/50">
-                  <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
                     Live Activity
                   </h3>
                 </div>
@@ -242,7 +242,7 @@ export default function ScrapersCommandCenter() {
                 {/* Scraper list */}
                 <div className="border-b border-[#334155]">
                   <div className="px-3 py-2">
-                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
                       Scrapers
                     </h3>
                   </div>
@@ -252,7 +252,7 @@ export default function ScrapersCommandCenter() {
                 {/* Activity feed */}
                 <div>
                   <div className="px-3 py-2 border-b border-[#334155]/50">
-                    <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B]">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
                       Live Activity
                     </h3>
                   </div>

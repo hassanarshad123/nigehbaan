@@ -13,7 +13,15 @@
     "news": "News",
     "compare": "Compare",
     "about": "About",
-    "admin": "Admin"
+    "admin": "Admin",
+    "explore": "Explore",
+    "more": "More",
+    "courtJudgments": "Court Judgments",
+    "newsMonitor": "News Monitor",
+    "districtComparison": "District Comparison",
+    "resourcesHelplines": "Resources & Helplines",
+    "aboutNigehbaan": "About Nigehbaan",
+    "scraperCenter": "Scraper Command Center"
   },
   "map": {
     "title": "Intelligence Map",

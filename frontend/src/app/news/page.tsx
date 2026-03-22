@@ -136,7 +136,7 @@ export default function NewsPage() {
                     {article.sourceName ?? 'Unknown'}
                   </span>
                   {article.isTraffickingRelevant && (
-                    <span className="rounded-full bg-[#EF4444]/10 px-2 py-0.5 text-[10px] font-medium text-[#EF4444]">
+                    <span className="rounded-full bg-[#EF4444]/10 px-2 py-0.5 text-xs font-medium text-[#EF4444]">
                       Trafficking Related
                     </span>
                   )}
@@ -155,7 +155,7 @@ export default function NewsPage() {
                 )}
 
                 {/* Meta */}
-                <div className="flex items-center gap-3 text-[10px] text-[#94A3B8]">
+                <div className="flex items-center gap-3 text-xs text-[#94A3B8]">
                   {article.publishedDate && (
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />

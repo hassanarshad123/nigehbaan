@@ -82,7 +82,7 @@ export function ComparisonTable({ districts }: ComparisonTableProps) {
                 const val = d.vulnerability[row.key] as number | null;
                 return (
                   <div key={row.key} className="flex flex-col">
-                    <span className="text-[10px] text-[#94A3B8] uppercase tracking-wider">{row.label}</span>
+                    <span className="text-xs text-[#94A3B8] uppercase tracking-wider">{row.label}</span>
                     <span className="text-xs text-[#F8FAFC] tabular-nums">{row.format(val)}</span>
                   </div>
                 );

@@ -63,12 +63,12 @@ export default function NewsDetailPage() {
                   {article.sourceName ?? 'Unknown Source'}
                 </span>
                 {article.isTraffickingRelevant && (
-                  <span className="rounded-full bg-[#EF4444]/10 px-2 py-0.5 text-[10px] font-medium text-[#EF4444]">
+                  <span className="rounded-full bg-[#EF4444]/10 px-2 py-0.5 text-xs font-medium text-[#EF4444]">
                     Trafficking Related
                   </span>
                 )}
                 {article.relevanceScore != null && (
-                  <span className="text-[10px] text-[#94A3B8]">
+                  <span className="text-xs text-[#94A3B8]">
                     Score: {(article.relevanceScore * 100).toFixed(0)}%
                   </span>
                 )}
@@ -126,7 +126,7 @@ export default function NewsDetailPage() {
                     {(article.extractedLocations as string[]).map((loc, i) => (
                       <span
                         key={i}
-                        className="rounded-full bg-[#10B981]/10 px-2 py-0.5 text-[10px] text-[#10B981]"
+                        className="rounded-full bg-[#10B981]/10 px-2 py-0.5 text-xs text-[#10B981]"
                       >
                         {String(loc)}
                       </span>
@@ -144,7 +144,7 @@ export default function NewsDetailPage() {
                     {(article.extractedEntities as string[]).map((ent, i) => (
                       <span
                         key={i}
-                        className="rounded-full bg-[#06B6D4]/10 px-2 py-0.5 text-[10px] text-[#06B6D4]"
+                        className="rounded-full bg-[#06B6D4]/10 px-2 py-0.5 text-xs text-[#06B6D4]"
                       >
                         {String(ent)}
                       </span>

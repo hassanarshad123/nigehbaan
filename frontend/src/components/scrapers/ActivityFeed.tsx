@@ -95,21 +95,21 @@ function FeedEntry({ run, onClickScraper }: FeedEntryProps) {
           >
             {run.scraperName}
           </button>
-          <span className="text-[10px] text-[#64748B] flex-shrink-0">{timeStr}</span>
+          <span className="text-xs text-[#64748B] flex-shrink-0">{timeStr}</span>
         </div>
         <div className="flex items-center gap-2 mt-0.5">
           {run.recordsSaved > 0 && (
-            <span className="text-[10px] text-[#94A3B8] tabular-nums">
+            <span className="text-xs text-[#94A3B8] tabular-nums">
               {run.recordsSaved} saved
             </span>
           )}
           {run.durationSeconds !== null && run.durationSeconds !== undefined && (
-            <span className="text-[10px] text-[#64748B] tabular-nums">
+            <span className="text-xs text-[#64748B] tabular-nums">
               {formatDuration(run.durationSeconds)}
             </span>
           )}
           {run.status === 'error' && run.errorMessage && (
-            <span className="text-[10px] text-[#EF4444] truncate max-w-[120px]">
+            <span className="text-xs text-[#EF4444] truncate max-w-[120px]">
               {run.errorMessage}
             </span>
           )}

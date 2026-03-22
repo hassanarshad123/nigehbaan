@@ -57,7 +57,7 @@ function MiniCard({ label, value, icon, color, loading }: MiniCardProps) {
           <p className="text-lg font-bold text-[#F8FAFC] tabular-nums leading-tight">
             {formatNumber(value)}
           </p>
-          <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider truncate">
+          <p className="text-xs text-[#94A3B8] uppercase tracking-wider truncate">
             {label}
           </p>
         </div>

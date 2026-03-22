@@ -158,7 +158,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
               >
                 <span
                   className={cn(
-                    'flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase shrink-0 mt-0.5',
+                    'flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium uppercase shrink-0 mt-0.5',
                     config.bg,
                   )}
                 >
@@ -168,7 +168,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
                 <div className="text-left min-w-0">
                   <span className="block truncate">{result.name}</span>
                   {result.snippet && (
-                    <span className="block text-[10px] text-[#94A3B8] truncate">
+                    <span className="block text-xs text-[#94A3B8] truncate">
                       {result.snippet}
                     </span>
                   )}

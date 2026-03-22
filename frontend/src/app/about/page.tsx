@@ -126,7 +126,7 @@ export default function AboutPage() {
             <Database className="h-5 w-5 text-[#F59E0B]" />
             <h2 className="text-xl font-semibold text-[#F8FAFC]">Data Sources</h2>
             {summary && (
-              <span className="rounded-full bg-[#06B6D4]/10 px-2 py-0.5 text-[10px] font-medium text-[#06B6D4]">
+              <span className="rounded-full bg-[#06B6D4]/10 px-2 py-0.5 text-xs font-medium text-[#06B6D4]">
                 {summary.totalScrapers} total — {summary.healthyScrapers} healthy
               </span>
             )}
@@ -150,7 +150,7 @@ export default function AboutPage() {
                       <h3 className="text-sm font-semibold text-[#F8FAFC]">
                         {GROUP_LABELS[group] ?? group}
                       </h3>
-                      <span className="text-[10px] text-[#94A3B8]">
+                      <span className="text-xs text-[#94A3B8]">
                         {healthy}/{total} healthy
                       </span>
                     </div>
@@ -160,14 +160,14 @@ export default function AboutPage() {
                           {STATUS_ICON[s.status] ?? STATUS_ICON.inactive}
                           <span className="truncate">{s.name}</span>
                           {s.recordCount > 0 && (
-                            <span className="ml-auto text-[10px] font-mono text-[#94A3B8]">
+                            <span className="ml-auto text-xs font-mono text-[#94A3B8]">
                               {s.recordCount.toLocaleString()}
                             </span>
                           )}
                         </div>
                       ))}
                       {items.length > 6 && (
-                        <p className="text-[10px] text-[#94A3B8]">+{items.length - 6} more</p>
+                        <p className="text-xs text-[#94A3B8]">+{items.length - 6} more</p>
                       )}
                     </div>
                   </div>

@@ -132,7 +132,7 @@ export function StepDetails({ data, onChange }: StepDetailsProps) {
                 className="relative rounded-md border border-[#334155] bg-[#0F172A] px-3 py-1.5 text-xs text-[#F8FAFC] flex items-center gap-2"
               >
                 <span className="truncate max-w-[120px]">{file.name}</span>
-                <span className="text-[#94A3B8] text-[10px]">({formatFileSize(file.size)})</span>
+                <span className="text-[#94A3B8] text-xs">({formatFileSize(file.size)})</span>
                 <button
                   onClick={() => removePhoto(idx)}
                   className="text-[#94A3B8] hover:text-[#EF4444] transition-default"

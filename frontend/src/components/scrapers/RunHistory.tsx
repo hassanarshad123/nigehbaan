@@ -118,20 +118,20 @@ export function RunHistory({ scraperName }: RunHistoryProps) {
       <table className="w-full">
         <thead>
           <tr className="border-b border-[#334155]">
-            <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748B] w-8" />
-            <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+            <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-[#64748B] w-8" />
+            <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-[#64748B]">
               Time
             </th>
-            <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+            <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-[#64748B]">
               Duration
             </th>
-            <th className="px-3 py-2 text-right text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+            <th className="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider text-[#64748B]">
               Found
             </th>
-            <th className="px-3 py-2 text-right text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+            <th className="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider text-[#64748B]">
               Saved
             </th>
-            <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-[#64748B]">
+            <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-[#64748B]">
               Error
             </th>
           </tr>

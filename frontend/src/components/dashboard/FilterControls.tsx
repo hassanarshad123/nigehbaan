@@ -149,7 +149,7 @@ export function FilterControls() {
           <div className="space-y-2">
             {INCIDENT_TYPE_GROUPS.map((group) => (
               <div key={group.category}>
-                <span className="text-[10px] uppercase tracking-wider text-[#64748B] mb-0.5 block">
+                <span className="text-xs uppercase tracking-wider text-[#64748B] mb-0.5 block">
                   {group.category}
                 </span>
                 <div className="flex flex-wrap gap-1">

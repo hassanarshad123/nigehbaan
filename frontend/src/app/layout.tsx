@@ -5,6 +5,8 @@ import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { QueryProvider } from '@/app/providers';
 import { IntlProvider } from '@/components/layout/IntlProvider';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { ReportFAB } from '@/components/layout/ReportFAB';
+import { EmergencyBanner } from '@/components/layout/EmergencyBanner';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -93,7 +95,11 @@ export default function RootLayout({
           <IntlProvider>
             <ThemeProvider>
               <ErrorBoundary>
-                {children}
+                <EmergencyBanner />
+                <main id="main-content">
+                  {children}
+                </main>
+                <ReportFAB />
               </ErrorBoundary>
             </ThemeProvider>
           </IntlProvider>

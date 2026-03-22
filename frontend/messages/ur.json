@@ -13,7 +13,15 @@
     "news": "خبریں",
     "compare": "موازنہ",
     "about": "تعارف",
-    "admin": "ایڈمن"
+    "admin": "ایڈمن",
+    "explore": "دریافت کریں",
+    "more": "مزید",
+    "courtJudgments": "عدالتی فیصلے",
+    "newsMonitor": "خبروں کی نگرانی",
+    "districtComparison": "ضلعی موازنہ",
+    "resourcesHelplines": "وسائل اور ہیلپ لائنز",
+    "aboutNigehbaan": "نگہبان کے بارے میں",
+    "scraperCenter": "سکریپر کمانڈ سینٹر"
   },
   "map": {
     "title": "انٹیلیجنس نقشہ",

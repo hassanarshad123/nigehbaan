@@ -66,11 +66,11 @@ export function TransparencyMetrics() {
                     </div>
                   ))}
                   {items.length > 5 && (
-                    <p className="text-[10px] text-[#94A3B8]">+{items.length - 5} more metrics</p>
+                    <p className="text-xs text-[#94A3B8]">+{items.length - 5} more metrics</p>
                   )}
                 </div>
                 {items[0]?.reportPeriod && (
-                  <p className="text-[10px] text-[#94A3B8] mt-2">Period: {items[0].reportPeriod}</p>
+                  <p className="text-xs text-[#94A3B8] mt-2">Period: {items[0].reportPeriod}</p>
                 )}
               </div>
             );

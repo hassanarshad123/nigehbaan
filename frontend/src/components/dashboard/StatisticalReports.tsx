@@ -109,7 +109,7 @@ export function StatisticalReports() {
         )}
       </div>
       {data && data.length > 0 && (
-        <p className="text-[10px] text-[#94A3B8] mt-2">
+        <p className="text-xs text-[#94A3B8] mt-2">
           {data.length} indicator(s) from {new Set(data.map((d) => d.sourceName)).size} source(s)
         </p>
       )}

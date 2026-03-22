@@ -206,7 +206,7 @@ export function MapContainer() {
             </div>
             <div className="space-y-0.5">
               {errorKeys.map((key) => (
-                <p key={key} className="text-[10px] text-[#94A3B8]">
+                <p key={key} className="text-xs text-[#94A3B8]">
                   {key}: connection failed
                 </p>
               ))}

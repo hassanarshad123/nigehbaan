@@ -78,7 +78,7 @@ function GroupSection({ groupKey, scrapers, selectedScraper, onSelect }: GroupSe
       <button
         type="button"
         onClick={toggleExpanded}
-        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
+        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
       >
         {isExpanded ? (
           <ChevronDown className="h-3 w-3" />
@@ -86,7 +86,7 @@ function GroupSection({ groupKey, scrapers, selectedScraper, onSelect }: GroupSe
           <ChevronRight className="h-3 w-3" />
         )}
         <span>{GROUP_LABELS[groupKey] ?? groupKey}</span>
-        <span className="ml-auto text-[10px] font-normal text-[#64748B] tabular-nums">
+        <span className="ml-auto text-xs font-normal text-[#64748B] tabular-nums">
           {scrapers.length}
         </span>
       </button>
@@ -119,7 +119,7 @@ function GroupSection({ groupKey, scrapers, selectedScraper, onSelect }: GroupSe
                 >
                   {s.name}
                 </span>
-                <span className="text-[10px] text-[#64748B] tabular-nums flex-shrink-0">
+                <span className="text-xs text-[#64748B] tabular-nums flex-shrink-0">
                   {relativeTime(s.lastScraped)}
                 </span>
               </button>

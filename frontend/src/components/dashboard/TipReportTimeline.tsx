@@ -69,7 +69,7 @@ export function TipReportTimeline() {
         {latestReport?.tierRanking && (
           <span
             className={cn(
-              'rounded-full px-2.5 py-0.5 text-[10px] font-medium',
+              'rounded-full px-2.5 py-0.5 text-xs font-medium',
               TIER_COLORS[latestReport.tierRanking] ?? 'bg-[#334155] text-[#94A3B8]',
             )}
           >
@@ -106,7 +106,7 @@ export function TipReportTimeline() {
       {/* Key findings */}
       {latestReport?.keyFindings && (
         <div className="mt-4 rounded-md bg-[#0F172A] px-3 py-2">
-          <p className="text-[10px] text-[#94A3B8] mb-1">Key Findings ({latestReport.year})</p>
+          <p className="text-xs text-[#94A3B8] mb-1">Key Findings ({latestReport.year})</p>
           <p className="text-xs text-[#F8FAFC] line-clamp-3">{latestReport.keyFindings}</p>
         </div>
       )}

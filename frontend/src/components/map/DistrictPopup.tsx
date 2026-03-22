@@ -49,20 +49,20 @@ export function DistrictPopup({
           <span className="text-lg font-bold text-[#F8FAFC]">
             {formatNumber(incidentCount)}
           </span>
-          <span className="text-[10px] text-[#94A3B8]">Incidents</span>
+          <span className="text-xs text-[#94A3B8]">Incidents</span>
         </div>
         <div className="flex flex-col items-center rounded bg-[#0F172A] px-3 py-1.5">
           <span className="text-lg font-bold" style={{ color }}>
             {riskScore}
           </span>
-          <span className="text-[10px] text-[#94A3B8]">Risk Score</span>
+          <span className="text-xs text-[#94A3B8]">Risk Score</span>
         </div>
       </div>
 
       {/* Top incident types */}
       {topTypes.length > 0 && (
         <div className="mb-3">
-          <p className="text-[10px] uppercase tracking-wider text-[#94A3B8] mb-1">
+          <p className="text-xs uppercase tracking-wider text-[#94A3B8] mb-1">
             Top Incident Types
           </p>
           <div className="space-y-0.5">

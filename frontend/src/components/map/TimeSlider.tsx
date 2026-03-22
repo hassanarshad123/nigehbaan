@@ -76,7 +76,7 @@ export function TimeSlider() {
         />
       </div>
 
-      <div className="flex justify-between text-[10px] text-[#64748B] mt-1 tabular-nums">
+      <div className="flex justify-between text-xs text-[#64748B] mt-1 tabular-nums">
         <span>{MIN_YEAR}</span>
         <span>{MAX_YEAR}</span>
       </div>

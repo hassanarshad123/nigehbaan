@@ -184,7 +184,7 @@ function AdminDashboard() {
                       <button
                         onClick={() => handleStatusChange(report.id, 'under_review')}
                         disabled={actionLoading === report.id}
-                        className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-[#F59E0B] bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 transition-default"
+                        className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-[#F59E0B] bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 transition-default"
                         aria-label={`Review report ${report.id}`}
                       >
                         <Eye className="h-3 w-3" />
@@ -193,7 +193,7 @@ function AdminDashboard() {
                       <button
                         onClick={() => handleStatusChange(report.id, 'verified')}
                         disabled={actionLoading === report.id}
-                        className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-[#10B981] bg-[#10B981]/10 hover:bg-[#10B981]/20 transition-default"
+                        className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-[#10B981] bg-[#10B981]/10 hover:bg-[#10B981]/20 transition-default"
                         aria-label={`Verify report ${report.id}`}
                       >
                         <ThumbsUp className="h-3 w-3" />
@@ -202,7 +202,7 @@ function AdminDashboard() {
                       <button
                         onClick={() => handleStatusChange(report.id, 'rejected')}
                         disabled={actionLoading === report.id}
-                        className="flex items-center gap-1 rounded px-2 py-1 text-[10px] font-medium text-[#EF4444] bg-[#EF4444]/10 hover:bg-[#EF4444]/20 transition-default"
+                        className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-[#EF4444] bg-[#EF4444]/10 hover:bg-[#EF4444]/20 transition-default"
                         aria-label={`Reject report ${report.id}`}
                       >
                         <ThumbsDown className="h-3 w-3" />

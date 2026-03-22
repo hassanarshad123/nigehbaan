@@ -202,7 +202,7 @@ export function ScraperDetail({ scraperName }: ScraperDetailProps) {
             />
             {statusBadge.label}
           </span>
-          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-[#06B6D4]/10 text-[#06B6D4]">
+          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider bg-[#06B6D4]/10 text-[#06B6D4]">
             {sourceLabel}
           </span>
           {isRunning && (

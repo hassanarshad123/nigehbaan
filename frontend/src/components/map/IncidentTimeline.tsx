@@ -77,7 +77,7 @@ export function IncidentTimeline() {
       </div>
 
       {/* Tick marks */}
-      <div className="flex justify-between text-[10px] text-[#94A3B8] mt-1">
+      <div className="flex justify-between text-xs text-[#94A3B8] mt-1">
         {Array.from({ length: 8 }, (_, i) => MIN_YEAR + i * 2).map((year) => (
           <span key={year}>{year}</span>
         ))}

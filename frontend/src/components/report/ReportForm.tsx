@@ -121,7 +121,7 @@ export function ReportForm() {
                 </div>
                 <span
                   className={cn(
-                    'text-[10px] hidden sm:block',
+                    'text-xs hidden sm:block',
                     isActive ? 'text-[#F8FAFC]' : 'text-[#94A3B8]',
                   )}
                 >
