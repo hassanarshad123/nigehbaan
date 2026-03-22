@@ -748,3 +748,103 @@ def update_vulnerability_indicators(self) -> dict:
         return {"status": "completed", "districts_updated": districts_updated}
 
     return _run_async(_run())
+
+
+# ---------------------------------------------------------------------------
+# Route derivation
+# ---------------------------------------------------------------------------
+
+
+@celery_app.task(
+    name="app.tasks.processing_tasks.derive_trafficking_routes",
+    bind=True,
+    max_retries=1,
+)
+def derive_trafficking_routes(self) -> dict:
+    """Derive trafficking routes from court judgments and CTDC data.
+
+    Mines court_judgments for origin/destination district pairs and
+    creates LINESTRING geometries between district centroids.
+    """
+    logger.info("Deriving trafficking routes")
+
+    async def _run():
+        from sqlalchemy import and_, func, select
+
+        from app.database import async_session_factory
+        from app.models.boundaries import Boundary
+        from app.models.court_judgments import CourtJudgment
+        from app.models.trafficking_routes import TraffickingRoute
+
+        routes_created = 0
+
+        async with async_session_factory() as session:
+            # Find court judgments with different incident/court districts
+            stmt = (
+                select(
+                    CourtJudgment.incident_district_pcode,
+                    CourtJudgment.court_district_pcode,
+                    func.count().label("evidence_count"),
+                )
+                .where(
+                    and_(
+                        CourtJudgment.is_trafficking_related.is_(True),
+                        CourtJudgment.incident_district_pcode.isnot(None),
+                        CourtJudgment.court_district_pcode.isnot(None),
+                        CourtJudgment.incident_district_pcode
+                        != CourtJudgment.court_district_pcode,
+                    )
+                )
+                .group_by(
+                    CourtJudgment.incident_district_pcode,
+                    CourtJudgment.court_district_pcode,
+                )
+            )
+            result = await session.execute(stmt)
+            pairs = result.all()
+
+            for row in pairs:
+                origin_pcode = row.incident_district_pcode
+                dest_pcode = row.court_district_pcode
+                evidence = row.evidence_count
+
+                # Build LINESTRING from district centroids
+                line_stmt = select(
+                    func.ST_AsText(
+                        func.ST_MakeLine(
+                            func.ST_Centroid(
+                                select(Boundary.geometry)
+                                .where(Boundary.pcode == origin_pcode)
+                                .correlate(None)
+                                .scalar_subquery()
+                            ),
+                            func.ST_Centroid(
+                                select(Boundary.geometry)
+                                .where(Boundary.pcode == dest_pcode)
+                                .correlate(None)
+                                .scalar_subquery()
+                            ),
+                        )
+                    ).label("wkt")
+                )
+                line_result = await session.execute(line_stmt)
+                wkt = line_result.scalar()
+
+                if wkt:
+                    route = TraffickingRoute(
+                        route_name=f"{origin_pcode} → {dest_pcode}",
+                        origin_pcode=origin_pcode,
+                        destination_pcode=dest_pcode,
+                        trafficking_type="court_derived",
+                        confidence_level=min(evidence / 5, 1.0),
+                        evidence_source="court_judgments",
+                        route_geometry=func.ST_GeomFromText(wkt, 4326),
+                    )
+                    session.add(route)
+                    routes_created += 1
+
+            await session.commit()
+
+        return {"status": "completed", "routes_created": routes_created}
+
+    return _run_async(_run())

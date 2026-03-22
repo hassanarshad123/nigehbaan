@@ -18,6 +18,7 @@ router = APIRouter()
 # ── Human-readable schedule map (mirrors schedule.py) ──────────
 
 SCHEDULE_MAP: dict[str, str] = {
+    # ── News (every 6 hours) ──────────────────────────────────────
     "rss_monitor": "Every 6 hours",
     "dawn": "Every 6 hours",
     "tribune": "Every 6 hours",
@@ -26,33 +27,72 @@ SCHEDULE_MAP: dict[str, str] = {
     "geo_news": "Every 6 hours",
     "jang_urdu": "Every 6 hours",
     "express_urdu": "Every 6 hours",
-    "bbc_urdu": "Daily",
-    "geo_urdu": "Daily",
-    "sahil": "Annually (Jan)",
-    "tip_report": "Annually (Jul)",
-    "ctdc": "Quarterly",
+    "bbc_urdu": "Every 6 hours",
+    "geo_urdu": "Every 6 hours",
+    # ── Courts (weekly Sunday) ────────────────────────────────────
     "scp": "Weekly (Sun)",
     "lhc": "Weekly (Sun)",
     "shc": "Weekly (Sun)",
     "phc": "Weekly (Sun)",
     "bhc": "Weekly (Sun)",
     "ihc": "Weekly (Sun)",
-    "commonlii": "Monthly",
+    "commonlii": "Weekly (Sun)",
+    # ── Police (monthly 15th) ─────────────────────────────────────
     "police_punjab": "Monthly (15th)",
     "police_sindh": "Monthly (15th)",
+    "police_kp": "Monthly (15th)",
+    "police_balochistan": "Monthly (15th)",
+    # ── Monthly ───────────────────────────────────────────────────
     "stateofchildren": "Monthly (1st)",
+    "drf_newsletters": "Monthly",
+    # ── Quarterly ─────────────────────────────────────────────────
+    "ctdc": "Quarterly",
     "worldbank_api": "Quarterly",
     "unhcr_api": "Quarterly",
     "dhs_api": "Quarterly",
+    "pahchaan": "Quarterly",
+    "unicef_pakistan": "Quarterly",
+    "cpwb_punjab": "Quarterly",
+    "ilostat_api": "Quarterly",
+    "brick_kiln_dashboard": "Quarterly",
+    "ctdc_dataset": "Quarterly",
+    "unicef_sdmx": "Quarterly",
+    "jpp_data": "Quarterly",
+    "roshni_helpline": "Quarterly",
+    "unodc": "Quarterly",
+    "kpcpwc": "Quarterly",
+    "ssdo_checker": "Quarterly",
+    "mohr_checker": "Quarterly",
+    "border_crossings": "Quarterly",
+    "flood_extent": "Quarterly",
+    # ── Semi-annual ───────────────────────────────────────────────
+    "ncmec": "Semi-annual",
+    "meta_transparency": "Semi-annual",
+    "google_transparency": "Semi-annual",
+    # ── Annually ──────────────────────────────────────────────────
+    "sahil": "Annually (Jan)",
+    "tip_report": "Annually (Jul)",
     "ecpat": "Annually",
     "ncrc": "Annually",
-    "dol_child_labor": "Annually",
-    "dol_annual_report": "Annually",
-    "girls_not_brides": "Quarterly",
-    "world_prison_brief": "Quarterly",
-    "corporal_punishment": "Quarterly",
+    "dol_child_labor": "Annually (Oct)",
+    "dol_annual_report": "Annually (Oct)",
+    "dol_tvpra": "Annually (Oct)",
+    "girls_not_brides": "Annually",
+    "world_prison_brief": "Annually",
+    "corporal_punishment": "Annually",
     "zenodo_kilns": "Annually",
-    "ncmec": "Semi-annual",
+    "iwf_reports": "Annually",
+    "weprotect_gta": "Annually",
+    "bytes_for_all": "Annually",
+    "labour_surveys": "Annually",
+    "bllf": "Annually",
+    "brookings_bride": "Annually",
+    "csj_conversion": "Annually",
+    "provincial_labour_surveys": "Annually",
+    "nchr_organ": "Annually",
+    "sparc_reports": "Annually",
+    "zenodo_kilns_loader": "Annually",
+    "walkfree_gsi": "Annually",
 }
 
 # Maximum staleness before each frequency is "error" (hours)
@@ -71,20 +111,84 @@ _STALENESS_ERROR: dict[str, int] = {
 }
 
 # ── Celery task name mapping ───────────────────────────────────
+# Values are either a task name string, or a (task_name, args) tuple
+# for tasks that require positional arguments (courts, police).
 
-TASK_MAP: dict[str, str] = {
+TASK_MAP: dict[str, str | tuple[str, tuple]] = {
+    # ── News scrapers ─────────────────────────────────────────────
     "rss_monitor": "app.tasks.scraping_tasks.scrape_news_rss",
     "dawn": "app.tasks.scraping_tasks.scrape_news_dawn",
     "tribune": "app.tasks.scraping_tasks.scrape_news_tribune",
     "the_news": "app.tasks.scraping_tasks.scrape_news_the_news",
     "ary_news": "app.tasks.scraping_tasks.scrape_news_ary",
     "geo_news": "app.tasks.scraping_tasks.scrape_news_geo",
+    "jang_urdu": "app.tasks.scraping_tasks.scrape_news_jang_urdu",
+    "express_urdu": "app.tasks.scraping_tasks.scrape_news_express_urdu",
+    "bbc_urdu": "app.tasks.scraping_tasks.scrape_news_bbc_urdu",
+    "geo_urdu": "app.tasks.scraping_tasks.scrape_news_geo_urdu",
+    # ── Courts (with court_name arg) ──────────────────────────────
+    "scp": ("app.tasks.scraping_tasks.scrape_courts", ("scp",)),
+    "lhc": ("app.tasks.scraping_tasks.scrape_courts", ("lhc",)),
+    "shc": ("app.tasks.scraping_tasks.scrape_courts", ("shc",)),
+    "phc": ("app.tasks.scraping_tasks.scrape_courts", ("phc",)),
+    "bhc": ("app.tasks.scraping_tasks.scrape_courts", ("bhc",)),
+    "ihc": ("app.tasks.scraping_tasks.scrape_courts", ("ihc",)),
+    "commonlii": ("app.tasks.scraping_tasks.scrape_courts", ("commonlii",)),
+    # ── Police (with province arg) ────────────────────────────────
+    "police_punjab": ("app.tasks.scraping_tasks.scrape_police_data", ("punjab",)),
+    "police_sindh": ("app.tasks.scraping_tasks.scrape_police_data", ("sindh",)),
+    "police_kp": ("app.tasks.scraping_tasks.scrape_police_data", ("kp",)),
+    "police_balochistan": ("app.tasks.scraping_tasks.scrape_police_data", ("balochistan",)),
+    # ── Government / NGO ──────────────────────────────────────────
     "sahil": "app.tasks.scraping_tasks.scrape_sahil",
+    "stateofchildren": "app.tasks.scraping_tasks.scrape_stateofchildren",
+    "pahchaan": "app.tasks.scraping_tasks.scrape_pahchaan",
+    "cpwb_punjab": "app.tasks.scraping_tasks.scrape_cpwb_punjab",
+    "ncrc": "app.tasks.scraping_tasks.scrape_ncrc",
+    "roshni_helpline": "app.tasks.scraping_tasks.scrape_roshni_helpline",
+    "bllf": "app.tasks.scraping_tasks.scrape_bllf",
+    "drf_newsletters": "app.tasks.scraping_tasks.scrape_drf_newsletters",
+    "bytes_for_all": "app.tasks.scraping_tasks.scrape_bytes_for_all",
+    "labour_surveys": "app.tasks.scraping_tasks.scrape_labour_surveys",
+    "provincial_labour_surveys": "app.tasks.scraping_tasks.scrape_provincial_labour_surveys",
+    "nchr_organ": "app.tasks.scraping_tasks.scrape_nchr_organ",
+    "sparc_reports": "app.tasks.scraping_tasks.scrape_sparc_reports",
+    "csj_conversion": "app.tasks.scraping_tasks.scrape_csj_conversion",
+    "brick_kiln_dashboard": "app.tasks.scraping_tasks.scrape_brick_kiln_dashboard",
+    "kpcpwc": "app.tasks.scraping_tasks.scrape_kpcpwc",
+    "ssdo_checker": "app.tasks.scraping_tasks.scrape_ssdo_checker",
+    "mohr_checker": "app.tasks.scraping_tasks.scrape_mohr_checker",
+    # ── Data loaders ──────────────────────────────────────────────
+    "border_crossings": "app.tasks.scraping_tasks.load_border_crossings",
+    "zenodo_kilns_loader": "app.tasks.scraping_tasks.load_zenodo_kilns",
+    "walkfree_gsi": "app.tasks.scraping_tasks.load_walkfree_gsi",
+    "flood_extent": "app.tasks.scraping_tasks.load_flood_extent",
+    # ── International ─────────────────────────────────────────────
     "tip_report": "app.tasks.scraping_tasks.scrape_tip_report",
     "ctdc": "app.tasks.scraping_tasks.update_ctdc",
+    "ctdc_dataset": "app.tasks.scraping_tasks.scrape_ctdc_dataset",
+    "unodc": "app.tasks.scraping_tasks.scrape_unodc",
     "worldbank_api": "app.tasks.scraping_tasks.scrape_worldbank_api",
     "unhcr_api": "app.tasks.scraping_tasks.scrape_unhcr_api",
-    "stateofchildren": "app.tasks.scraping_tasks.scrape_stateofchildren",
+    "dhs_api": "app.tasks.scraping_tasks.scrape_dhs_api",
+    "ilostat_api": "app.tasks.scraping_tasks.scrape_ilostat_api",
+    "unicef_pakistan": "app.tasks.scraping_tasks.scrape_unicef_pakistan",
+    "unicef_sdmx": "app.tasks.scraping_tasks.scrape_unicef_sdmx",
+    "ecpat": "app.tasks.scraping_tasks.scrape_ecpat",
+    "ncmec": "app.tasks.scraping_tasks.scrape_ncmec",
+    "iwf_reports": "app.tasks.scraping_tasks.scrape_iwf_reports",
+    "meta_transparency": "app.tasks.scraping_tasks.scrape_meta_transparency",
+    "google_transparency": "app.tasks.scraping_tasks.scrape_google_transparency",
+    "weprotect_gta": "app.tasks.scraping_tasks.scrape_weprotect_gta",
+    "girls_not_brides": "app.tasks.scraping_tasks.scrape_girls_not_brides",
+    "corporal_punishment": "app.tasks.scraping_tasks.scrape_corporal_punishment",
+    "dol_child_labor": "app.tasks.scraping_tasks.scrape_dol_child_labor",
+    "dol_annual_report": "app.tasks.scraping_tasks.scrape_dol_annual_report",
+    "dol_tvpra": "app.tasks.scraping_tasks.scrape_dol_tvpra",
+    "brookings_bride": "app.tasks.scraping_tasks.scrape_brookings_bride",
+    "jpp_data": "app.tasks.scraping_tasks.scrape_jpp_data",
+    "world_prison_brief": "app.tasks.scraping_tasks.scrape_world_prison_brief",
+    "zenodo_kilns": "app.tasks.scraping_tasks.scrape_zenodo_kilns",
 }
 
 
@@ -370,14 +474,18 @@ async def trigger_scraper(
     """Manually trigger a scraper task."""
     from app.tasks.celery_app import celery_app
 
-    task_name = TASK_MAP.get(name)
-    if not task_name:
-        # Try a generic pattern
+    entry = TASK_MAP.get(name)
+    task_args: tuple = ()
+    if isinstance(entry, tuple):
+        task_name, task_args = entry
+    elif isinstance(entry, str):
+        task_name = entry
+    else:
+        # Fallback: try a generic pattern
         task_name = f"app.tasks.scraping_tasks.scrape_{name}"
 
     try:
-        # Check if task exists
-        result = celery_app.send_task(task_name)
+        result = celery_app.send_task(task_name, args=task_args)
 
         # Log the run
         run = ScraperRun(
@@ -411,9 +519,14 @@ async def trigger_all_scrapers(
     from app.tasks.celery_app import celery_app
 
     results = []
-    for name, task_name in TASK_MAP.items():
+    for name, entry in TASK_MAP.items():
         try:
-            result = celery_app.send_task(task_name)
+            if isinstance(entry, tuple):
+                task_name, task_args = entry
+                result = celery_app.send_task(task_name, args=task_args)
+            else:
+                task_name = entry
+                result = celery_app.send_task(task_name)
             run = ScraperRun(
                 scraper_name=name,
                 task_id=result.id,

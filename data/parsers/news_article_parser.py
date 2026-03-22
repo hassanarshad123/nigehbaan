@@ -67,8 +67,9 @@ class NewsArticleParser:
                 logger.info("Loaded spaCy en_core_web_sm model")
             except OSError:
                 logger.warning("en_core_web_sm not found, NER features limited")
-        except ImportError:
-            logger.warning("spaCy not installed, NER features disabled")
+        except Exception:
+            # Catches ImportError AND pydantic v1 compat issues on Python 3.14+
+            logger.warning("spaCy not available, NER features disabled")
 
     def load_gazetteer(self) -> None:
         """Load the Pakistan district gazetteer for geocoding."""
