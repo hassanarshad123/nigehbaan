@@ -12,9 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright with Chromium and all system dependencies
+# Install Playwright with Chromium (optional — BHC scraper only)
 RUN pip install --no-cache-dir playwright==1.49.1 \
-    && python -m playwright install --with-deps chromium
+    && python -m playwright install --with-deps chromium \
+    || echo "WARNING: Playwright install failed — BHC court scraper will be limited"
 
 # Copy backend application code
 COPY backend/ ./backend/
