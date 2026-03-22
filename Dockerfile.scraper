@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# System dependencies for geopandas/shapely (no Playwright)
+# System dependencies for geopandas/shapely + Playwright system deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgdal-dev \
     libgeos-dev \
@@ -11,7 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir playwright && python -m playwright install chromium --with-deps
+
+# Install Playwright with Chromium (optional — BHC scraper only)
+RUN pip install --no-cache-dir playwright==1.49.1 \
+    && python -m playwright install --with-deps chromium \
+    || echo "WARNING: Playwright install failed — BHC court scraper will be limited"
 
 # Copy backend application code
 COPY backend/ ./backend/

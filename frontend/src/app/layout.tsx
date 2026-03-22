@@ -20,9 +20,9 @@ const nastaliq = Noto_Nastaliq_Urdu({
 });
 
 export const metadata: Metadata = {
-  title: 'Nigehbaan — Pakistan Child Trafficking Intelligence',
+  title: 'Nigehbaan — Pakistan Child Trafficking Intelligence Platform',
   description:
-    'Open-source geospatial intelligence platform tracking child trafficking patterns across Pakistan.',
+    'Unified data intelligence platform aggregating 90+ sources on child trafficking in Pakistan. Interactive maps, trend analysis, and public reporting.',
   keywords: [
     'child trafficking',
     'Pakistan',
@@ -30,13 +30,29 @@ export const metadata: Metadata = {
     'geospatial',
     'child protection',
     'Nigehbaan',
+    'data platform',
+    'trend analysis',
+    'interactive maps',
   ],
+  metadataBase: new URL('https://nigehbaan.vercel.app'),
   openGraph: {
-    title: 'Nigehbaan — Pakistan Child Trafficking Intelligence',
-    description: 'Open-source geospatial intelligence platform tracking child trafficking patterns across Pakistan.',
+    title: 'Nigehbaan — Pakistan Child Trafficking Intelligence Platform',
+    description:
+      'Unified data intelligence platform aggregating 90+ sources on child trafficking in Pakistan. Interactive maps, trend analysis, and public reporting.',
     type: 'website',
     locale: 'en_US',
     siteName: 'Nigehbaan',
+    url: 'https://nigehbaan.vercel.app',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Nigehbaan — Pakistan Child Trafficking Intelligence Platform',
+    description:
+      'Unified data intelligence platform aggregating 90+ sources on child trafficking in Pakistan.',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
@@ -53,7 +69,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`dark ${inter.variable} ${nastaliq.variable}`}>
+    <html lang="en" dir="ltr" className={`dark ${inter.variable} ${nastaliq.variable}`} suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#06B6D4" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        {/* Inline script to set dir/lang before first paint, avoiding RTL flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var l=localStorage.getItem('nigehbaan-locale');if(l==='ur'){document.documentElement.dir='rtl';document.documentElement.lang='ur';}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="font-sans bg-[#0F172A] text-[#F8FAFC] antialiased">
         <a
           href="#main-content"

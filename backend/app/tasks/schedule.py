@@ -338,6 +338,61 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(minute=0, hour=20, day_of_month=1, month_of_year="1,4,7,10"),
         "options": {"queue": "scraping"},
     },
+    # ── Orphaned government scrapers ─────────────────────────────────
+    "kpcpwc": {
+        "task": "app.tasks.scraping_tasks.scrape_kpcpwc",
+        "schedule": crontab(minute=0, hour=20, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "scraping"},
+    },
+    "ssdo_checker": {
+        "task": "app.tasks.scraping_tasks.scrape_ssdo_checker",
+        "schedule": crontab(minute=30, hour=20, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "scraping"},
+    },
+    "mohr_checker": {
+        "task": "app.tasks.scraping_tasks.scrape_mohr_checker",
+        "schedule": crontab(minute=0, hour=21, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "scraping"},
+    },
+    # ── Data loaders ──────────────────────────────────────────────────
+    "load_border_crossings": {
+        "task": "app.tasks.scraping_tasks.load_border_crossings",
+        "schedule": crontab(minute=0, hour=22, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "processing"},
+    },
+    "load_zenodo_kilns": {
+        "task": "app.tasks.scraping_tasks.load_zenodo_kilns",
+        "schedule": crontab(minute=0, hour=12, day_of_month=2, month_of_year=1),
+        "options": {"queue": "processing"},
+    },
+    "load_walkfree_gsi": {
+        "task": "app.tasks.scraping_tasks.load_walkfree_gsi",
+        "schedule": crontab(minute=30, hour=21, day_of_month=1, month_of_year=1),
+        "options": {"queue": "scraping"},
+    },
+    "load_flood_extent": {
+        "task": "app.tasks.scraping_tasks.load_flood_extent",
+        "schedule": crontab(minute=0, hour=23, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "processing"},
+    },
+    # ── Previously missing schedule entries ────────────────────────────
+    "court_commonlii": {
+        "task": "app.tasks.scraping_tasks.scrape_courts",
+        "schedule": crontab(minute=30, hour=2, day_of_week=0),  # weekly Sun
+        "args": ("commonlii",),
+        "options": {"queue": "scraping"},
+    },
+    "unodc": {
+        "task": "app.tasks.scraping_tasks.scrape_unodc",
+        # quarterly
+        "schedule": crontab(minute=0, hour=6, day_of_month=1, month_of_year="1,4,7,10"),
+        "options": {"queue": "scraping"},
+    },
+    "dol_child_labor": {
+        "task": "app.tasks.scraping_tasks.scrape_dol_child_labor",
+        "schedule": crontab(minute=30, hour=11, day_of_month=1, month_of_year=10),  # annually Oct
+        "options": {"queue": "scraping"},
+    },
     # ── Monitoring ────────────────────────────────────────────────────
     "scraper_health_check": {
         "task": "app.tasks.scraping_tasks.scraper_health_check",
@@ -369,6 +424,11 @@ celery_app.conf.beat_schedule = {
     "vulnerability_indicators": {
         "task": "app.tasks.processing_tasks.update_vulnerability_indicators",
         "schedule": crontab(minute=0, hour=9, day_of_month=1),  # monthly
+        "options": {"queue": "processing"},
+    },
+    "derive_routes": {
+        "task": "app.tasks.processing_tasks.derive_trafficking_routes",
+        "schedule": crontab(minute=0, hour=10, day_of_month=1),  # monthly
         "options": {"queue": "processing"},
     },
 }

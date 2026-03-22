@@ -218,7 +218,8 @@ async def update_report_status(
     if payload.status not in _VALID_STATUSES:
         raise HTTPException(
             status_code=422,
-            detail=f"Invalid status '{payload.status}'. Must be one of: {', '.join(sorted(_VALID_STATUSES))}",
+            detail=f"Invalid status '{payload.status}'. "
+            f"Must be one of: {', '.join(sorted(_VALID_STATUSES))}",
         )
 
     result = await db.execute(

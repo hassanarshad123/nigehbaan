@@ -32,16 +32,21 @@ def _fix_asyncpg_url(url: str) -> tuple[str, dict]:
     return clean_url, connect_args
 
 
-_clean_url, _connect_args = _fix_asyncpg_url(settings.database_url)
+_db_url = settings.database_url
+_is_sqlite = _db_url.startswith("sqlite")
 
-engine = create_async_engine(
-    _clean_url,
-    echo=False,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-    connect_args=_connect_args,
-)
+if _is_sqlite:
+    engine = create_async_engine(_db_url, echo=False)
+else:
+    _clean_url, _connect_args = _fix_asyncpg_url(_db_url)
+    engine = create_async_engine(
+        _clean_url,
+        echo=False,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+        connect_args=_connect_args,
+    )
 
 async_session_factory = async_sessionmaker(
     engine,

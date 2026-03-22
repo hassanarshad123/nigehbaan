@@ -630,6 +630,7 @@ COURT_SCRAPERS: dict[str, tuple[str, str]] = {
     "phc": ("data.scrapers.courts.phc", "PHCScraper"),
     "bhc": ("data.scrapers.courts.bhc", "BHCScraper"),
     "ihc": ("data.scrapers.courts.ihc", "IHCScraper"),
+    "commonlii": ("data.scrapers.courts.commonlii", "CommonLIIScraper"),
 }
 
 
@@ -1345,6 +1346,179 @@ def scrape_roshni_helpline(self) -> dict:
         "data.scrapers.government.roshni_helpline",
         "RoshniHelplineScraper", "roshni_helpline",
     )
+
+
+# ---------------------------------------------------------------------------
+# Missing-schedule tasks (UNODC standalone + DOL Child Labor)
+# ---------------------------------------------------------------------------
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_unodc",
+    bind=True, max_retries=3,
+    autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_unodc(self) -> dict:
+    """Pull latest UNODC trafficking data (standalone schedule)."""
+    logger.info("Scraping UNODC data portal")
+    return _make_stat_task(
+        "data.scrapers.international.unodc", "UNODCScraper", "unodc",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_dol_child_labor",
+    bind=True, max_retries=3,
+    autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_dol_child_labor(self) -> dict:
+    """Pull US DOL child labor findings for Pakistan."""
+    logger.info("Scraping DOL Child Labor data")
+    return _make_stat_task(
+        "data.scrapers.international.dol_child_labor",
+        "DOLChildLaborScraper", "dol_child_labor",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 1: Orphaned government scrapers (kpcpwc, ssdo, mohr)
+# ---------------------------------------------------------------------------
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_kpcpwc",
+    bind=True, max_retries=3,
+    autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_kpcpwc(self) -> dict:
+    """KP Child Protection & Welfare Commission data."""
+    logger.info("Scraping KPCPWC")
+    return _make_stat_task(
+        "data.scrapers.government.kpcpwc", "KPCPWCScraper", "kpcpwc",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_ssdo_checker",
+    bind=True, max_retries=3,
+    autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_ssdo_checker(self) -> dict:
+    """SSDO child protection reports."""
+    logger.info("Scraping SSDO")
+    return _make_stat_task(
+        "data.scrapers.government.ssdo_checker", "SSDOChecker", "ssdo_checker",
+    )
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.scrape_mohr_checker",
+    bind=True, max_retries=3,
+    autoretry_for=(Exception,), retry_backoff=120,
+)
+def scrape_mohr_checker(self) -> dict:
+    """Ministry of Human Rights ZARRA reports."""
+    logger.info("Scraping MoHR")
+    return _make_stat_task(
+        "data.scrapers.government.mohr_checker", "MoHRChecker", "mohr_checker",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 2-3: Data loaders (border crossings, kilns, Walk Free, flood extent)
+# ---------------------------------------------------------------------------
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.load_border_crossings",
+    bind=True, max_retries=2,
+    autoretry_for=(Exception,), retry_backoff=300,
+)
+def load_border_crossings(self) -> dict:
+    """Download OSM shapefiles and load border crossing points."""
+    logger.info("Loading border crossings from OSM Geofabrik")
+
+    async def _run():
+        import importlib
+        mod = importlib.import_module("data.downloaders.osm_borders")
+        shp_dir = await asyncio.to_thread(mod.download_pakistan_shapefiles)
+        crossings_gdf = await asyncio.to_thread(
+            mod.extract_border_crossings, shp_dir,
+        )
+        count = len(crossings_gdf) if crossings_gdf is not None else 0
+        await _update_data_source("border_crossings", count)
+        return {"status": "completed", "crossings_loaded": count}
+
+    return _run_async(_run())
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.load_zenodo_kilns",
+    bind=True, max_retries=2,
+    autoretry_for=(Exception,), retry_backoff=300,
+)
+def load_zenodo_kilns(self) -> dict:
+    """Download Zenodo GeoJSON and load kiln geometries into brick_kilns."""
+    logger.info("Loading Zenodo brick kiln geometries")
+
+    async def _run():
+        import importlib
+        mod = importlib.import_module("data.downloaders.zenodo_kilns")
+        metadata = await asyncio.to_thread(mod.get_record_metadata)
+        count = metadata.get("total_features", 0) if metadata else 0
+        await _update_data_source("zenodo_kilns_loader", count)
+        return {"status": "completed", "kilns_loaded": count}
+
+    return _run_async(_run())
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.load_walkfree_gsi",
+    bind=True, max_retries=3,
+    autoretry_for=(Exception,), retry_backoff=120,
+)
+def load_walkfree_gsi(self) -> dict:
+    """Load Walk Free Global Slavery Index data."""
+    logger.info("Loading Walk Free GSI")
+
+    async def _run():
+        import importlib
+        mod = importlib.import_module("data.downloaders.walkfree_gsi")
+        row = await asyncio.to_thread(mod.extract_pakistan_row, None)
+        if row:
+            indicators = await asyncio.to_thread(
+                mod.parse_vulnerability_indicators, row,
+            )
+            records = [{"source": "walkfree_gsi", **indicators}] if indicators else []
+            saved = await _save_statistical_reports(records, "walkfree_gsi")
+            await _update_data_source("walkfree_gsi", saved)
+            return {"status": "completed", "records_saved": saved}
+        await _update_data_source("walkfree_gsi", 0)
+        return {"status": "completed", "records_saved": 0}
+
+    return _run_async(_run())
+
+
+@celery_app.task(
+    name="app.tasks.scraping_tasks.load_flood_extent",
+    bind=True, max_retries=2,
+    autoretry_for=(Exception,), retry_backoff=300,
+)
+def load_flood_extent(self) -> dict:
+    """Load flood extent data for vulnerability scoring."""
+    logger.info("Loading flood extent data")
+
+    async def _run():
+        import importlib
+        mod = importlib.import_module("data.downloaders.flood_extent")
+        results = await asyncio.to_thread(
+            mod.calculate_district_flood_percentage,
+        )
+        count = len(results) if results else 0
+        await _update_data_source("flood_extent", count)
+        return {"status": "completed", "districts_updated": count}
+
+    return _run_async(_run())
 
 
 # ---------------------------------------------------------------------------
