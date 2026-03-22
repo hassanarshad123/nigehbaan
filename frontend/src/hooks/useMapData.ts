@@ -24,6 +24,8 @@ interface BorderCrossingPoint {
   vulnerabilityScore: number | null;
 }
 
+type LayerDataKey = 'boundaries' | 'incidents' | 'kilns' | 'borders' | 'vulnerability' | 'routes';
+
 interface MapData {
   boundaries: GeoJSONFeatureCollection | null;
   incidents: GeoJSONFeatureCollection | null;
@@ -33,6 +35,7 @@ interface MapData {
   routes: GeoJSONFeatureCollection | null;
   countryMask: GeoJSONFeatureCollection | null;
   loading: boolean;
+  errors: Partial<Record<LayerDataKey, string>>;
   counts: {
     incidents: number;
     kilns: number;
@@ -111,8 +114,6 @@ function buildWorldMask(countryGeojson: GeoJSONFeatureCollection): GeoJSONFeatur
   };
 }
 
-type LayerDataKey = 'boundaries' | 'incidents' | 'kilns' | 'borders' | 'vulnerability' | 'routes';
-
 const LAYER_ENDPOINTS: Record<LayerDataKey, string> = {
   boundaries: '/api/v1/map/boundaries?level=2',
   incidents: '/api/v1/map/incidents',
@@ -143,6 +144,7 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
   });
   const [countryMask, setCountryMask] = useState<GeoJSONFeatureCollection | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState<Partial<Record<LayerDataKey, string>>>({});
   const fetchedRef = useRef<Set<LayerDataKey>>(new Set());
   const maskFetchedRef = useRef(false);
 
@@ -160,7 +162,10 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
           const geojson: GeoJSONFeatureCollection = raw?.features ? raw : EMPTY_FC;
           setData((prev) => ({ ...prev, boundaries: geojson }));
         })
-        .catch((err) => console.error('Failed to fetch boundaries:', err));
+        .catch((err) => {
+          console.error('Failed to fetch boundaries:', err);
+          setErrors((prev) => ({ ...prev, boundaries: String(err) }));
+        });
     }
 
     // Country boundary (level=0) for mask
@@ -196,7 +201,10 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
             key === 'borders' ? bordersToGeoJSON(raw as BorderCrossingPoint[]) : raw;
           setData((prev) => ({ ...prev, [key]: geojson?.features ? geojson : EMPTY_FC }));
         })
-        .catch((err) => console.error(`Failed to fetch ${key}:`, err));
+        .catch((err) => {
+          console.error(`Failed to fetch ${key}:`, err);
+          setErrors((prev) => ({ ...prev, [key]: String(err) }));
+        });
     }
   }, []);
 
@@ -234,6 +242,7 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
           })
           .catch((err) => {
             console.error(`Failed to fetch ${key}:`, err);
+            setErrors((prev) => ({ ...prev, [key]: String(err) }));
             return { key, geojson: EMPTY_FC };
           }),
       ),
@@ -265,6 +274,7 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
     filteredIncidents,
     countryMask,
     loading,
+    errors,
     counts: {
       boundaries: data.boundaries?.features?.length ?? 0,
       incidents: filteredIncidents?.features?.length ?? 0,

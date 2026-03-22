@@ -1,7 +1,7 @@
 """Legal / court judgment API endpoints."""
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import extract, func, select
+from sqlalchemy import distinct, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -14,22 +14,28 @@ router = APIRouter()
 @router.get("/search", response_model=list[JudgmentResponse])
 async def search_judgments(
     court: str | None = Query(default=None, description="Court name filter"),
+    year: int | None = Query(default=None, description="Single year filter"),
     year_from: int | None = Query(default=None, alias="yearFrom", description="Start year"),
     year_to: int | None = Query(default=None, alias="yearTo", description="End year"),
-    ppc_section: str | None = Query(default=None, alias="ppcSection", description="PPC section"),
+    ppc_section: str | None = Query(default=None, description="PPC section filter"),
     verdict: str | None = Query(default=None, description="Verdict filter"),
     district: str | None = Query(default=None, description="District pcode filter"),
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> list[JudgmentResponse]:
-    """Search court judgments with optional filters."""
+    """Search court judgments with optional filters and pagination."""
     stmt = select(CourtJudgment).order_by(CourtJudgment.judgment_date.desc().nullslast())
 
     if court is not None:
         stmt = stmt.where(CourtJudgment.court_name.ilike(f"%{court}%"))
-    if year_from is not None:
-        stmt = stmt.where(extract("year", CourtJudgment.judgment_date) >= year_from)
-    if year_to is not None:
-        stmt = stmt.where(extract("year", CourtJudgment.judgment_date) <= year_to)
+    if year is not None:
+        stmt = stmt.where(extract("year", CourtJudgment.judgment_date) == year)
+    elif year_from is not None or year_to is not None:
+        if year_from is not None:
+            stmt = stmt.where(extract("year", CourtJudgment.judgment_date) >= year_from)
+        if year_to is not None:
+            stmt = stmt.where(extract("year", CourtJudgment.judgment_date) <= year_to)
     if ppc_section is not None:
         stmt = stmt.where(CourtJudgment.ppc_sections.any(ppc_section))
     if verdict is not None:
@@ -37,7 +43,7 @@ async def search_judgments(
     if district is not None:
         stmt = stmt.where(CourtJudgment.incident_district_pcode == district)
 
-    stmt = stmt.limit(100)
+    stmt = stmt.offset((page - 1) * limit).limit(limit)
 
     result = await db.execute(stmt)
     rows = result.scalars().all()
@@ -47,7 +53,7 @@ async def search_judgments(
             id=row.id,
             courtName=row.court_name,
             caseNumber=row.case_number,
-            date=row.judgment_date,
+            judgmentDate=row.judgment_date,
             ppcSections=row.ppc_sections or [],
             verdict=row.verdict,
             sentenceYears=row.sentence_years,
@@ -55,6 +61,19 @@ async def search_judgments(
         )
         for row in rows
     ]
+
+
+@router.get("/courts", response_model=list[str])
+async def list_courts(
+    db: AsyncSession = Depends(get_db),
+) -> list[str]:
+    """Return distinct court names from the database."""
+    result = await db.execute(
+        select(distinct(CourtJudgment.court_name))
+        .where(CourtJudgment.court_name.isnot(None))
+        .order_by(CourtJudgment.court_name)
+    )
+    return [row[0] for row in result.all()]
 
 
 @router.get("/conviction-rates", response_model=list[ConvictionRateResponse])

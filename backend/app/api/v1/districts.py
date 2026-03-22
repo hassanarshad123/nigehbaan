@@ -268,24 +268,18 @@ async def get_district_vulnerability(
         )
 
     return DistrictVulnerability(
-        districtPcode=row.district_pcode,
-        year=row.year,
-        schoolEnrollmentRate=row.school_enrollment_rate,
-        schoolDropoutRate=row.school_dropout_rate,
-        outOfSchoolChildren=row.out_of_school_children,
+        pcode=row.district_pcode,
         literacyRate=row.literacy_rate,
-        povertyHeadcountRatio=row.poverty_headcount_ratio,
-        foodInsecurityRate=row.food_insecurity_rate,
         childLaborRate=row.child_labor_rate,
-        unemploymentRate=row.unemployment_rate,
-        populationUnder18=row.population_under_18,
-        birthRegistrationRate=row.birth_registration_rate,
+        povertyHeadcount=row.poverty_headcount_ratio,
+        foodInsecurity=row.food_insecurity_rate,
+        outOfSchoolRate=row.out_of_school_children,
         childMarriageRate=row.child_marriage_rate,
-        refugeePopulation=row.refugee_population,
-        brickKilnCount=row.brick_kiln_count,
-        brickKilnDensityPerSqkm=row.brick_kiln_density_per_sqkm,
-        distanceToBorderKm=row.distance_to_border_km,
-        floodAffectedPct=row.flood_affected_pct,
+        kilnDensity=row.brick_kiln_density_per_sqkm,
+        borderDistanceKm=row.distance_to_border_km,
+        floodExposure=row.flood_affected_pct,
+        enrollmentRate=row.school_enrollment_rate,
+        incidentRate=None,  # TODO: compute from incidents table
+        convictionRate=None,  # TODO: compute from court_judgments table
         traffickingRiskScore=row.trafficking_risk_score,
-        source=row.source,
     )

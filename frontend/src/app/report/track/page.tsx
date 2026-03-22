@@ -67,7 +67,7 @@ export default function ReportTrackPage() {
               type="text"
               value={refInput}
               onChange={(e) => setRefInput(e.target.value)}
-              placeholder="e.g. NGH-M1234XYZ or report ID"
+              placeholder="e.g. NGB-M1234XYZ or report ID"
               className={cn(
                 'flex-1 rounded-md border border-[#334155] bg-[#0F172A] px-3 py-2.5 text-sm text-[#F8FAFC]',
                 'placeholder-[#94A3B8] outline-none border-glow-focus transition-default',

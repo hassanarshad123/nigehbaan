@@ -26,7 +26,7 @@ class JudgmentResponse(BaseModel):
     id: int
     court_name: str | None = Field(default=None, alias="courtName")
     case_number: str | None = Field(default=None, alias="caseNumber")
-    judgment_date: date | None = Field(default=None, alias="date")
+    judgment_date: date | None = Field(default=None, alias="judgmentDate")
     ppc_sections: list[str] = Field(default_factory=list, alias="ppcSections")
     verdict: str | None = None
     sentence_years: float | None = Field(default=None, alias="sentenceYears")

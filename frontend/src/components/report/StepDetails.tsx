@@ -10,14 +10,48 @@ interface StepDetailsProps {
   onChange: (partial: Partial<ReportFormData>) => void;
 }
 
+const MAX_PHOTOS = 3;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png']);
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function StepDetails({ data, onChange }: StepDetailsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoError, setPhotoError] = React.useState<string | null>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    const newPhotos = [...data.photos, ...Array.from(files)];
+    setPhotoError(null);
+
+    const incoming = Array.from(files);
+    const totalCount = data.photos.length + incoming.length;
+
+    if (totalCount > MAX_PHOTOS) {
+      setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed.`);
+      return;
+    }
+
+    for (const file of incoming) {
+      if (!ALLOWED_TYPES.has(file.type)) {
+        setPhotoError(`"${file.name}" is not a valid format. Only JPG and PNG allowed.`);
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        setPhotoError(`"${file.name}" is too large (${formatFileSize(file.size)}). Maximum 5 MB.`);
+        return;
+      }
+    }
+
+    const newPhotos = [...data.photos, ...incoming];
     onChange({ photos: newPhotos });
+    // Reset input so same file can be re-selected
+    e.target.value = '';
   };
 
   const removePhoto = (index: number) => {
@@ -72,16 +106,21 @@ export function StepDetails({ data, onChange }: StepDetailsProps) {
         >
           <Upload className="mx-auto h-6 w-6 text-[#94A3B8] mb-1" />
           <p className="text-sm text-[#94A3B8]">Click to upload photos</p>
-          <p className="text-xs text-[#334155]">JPG, PNG up to 10MB each</p>
+          <p className="text-xs text-[#334155]">JPG, PNG up to 5MB each (max {MAX_PHOTOS})</p>
         </button>
+
+        {photoError && (
+          <p className="mt-2 text-xs text-[#EF4444]">{photoError}</p>
+        )}
 
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png"
           multiple
           onChange={handleFileSelect}
           className="hidden"
+          aria-label="Upload photos"
         />
 
         {/* Photo previews */}
@@ -93,6 +132,7 @@ export function StepDetails({ data, onChange }: StepDetailsProps) {
                 className="relative rounded-md border border-[#334155] bg-[#0F172A] px-3 py-1.5 text-xs text-[#F8FAFC] flex items-center gap-2"
               >
                 <span className="truncate max-w-[120px]">{file.name}</span>
+                <span className="text-[#94A3B8] text-[10px]">({formatFileSize(file.size)})</span>
                 <button
                   onClick={() => removePhoto(idx)}
                   className="text-[#94A3B8] hover:text-[#EF4444] transition-default"

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { LanguageToggle } from './LanguageToggle';
-import { Map, BarChart3, FileWarning, Scale, LifeBuoy, Info, Activity, Menu, X, GitCompareArrows } from 'lucide-react';
+import { Map, BarChart3, FileWarning, Scale, LifeBuoy, Info, Activity, Menu, X, GitCompareArrows, Newspaper } from 'lucide-react';
 
 interface NavItem {
   href: string;
@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', labelKey: 'dashboard', icon: <BarChart3 className="h-4 w-4" /> },
   { href: '/report', labelKey: 'report', icon: <FileWarning className="h-4 w-4" /> },
   { href: '/legal', labelKey: 'legal', icon: <Scale className="h-4 w-4" /> },
+  { href: '/news', labelKey: 'news', icon: <Newspaper className="h-4 w-4" /> },
   { href: '/compare', labelKey: 'compare', icon: <GitCompareArrows className="h-4 w-4" /> },
   { href: '/scrapers', labelKey: 'scrapers', icon: <Activity className="h-4 w-4" /> },
   { href: '/resources', labelKey: 'resources', icon: <LifeBuoy className="h-4 w-4" /> },

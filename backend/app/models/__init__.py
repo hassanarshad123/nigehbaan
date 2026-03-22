@@ -8,6 +8,7 @@ from app.models.court_judgments import CourtJudgment
 from app.models.incidents import Incident
 from app.models.news_articles import DataSource, NewsArticle
 from app.models.public_reports import PublicReport
+from app.models.resources import Resource
 from app.models.statistical_reports import StatisticalReport
 from app.models.tip_report import TipReportAnnual
 from app.models.trafficking_routes import TraffickingRoute
@@ -30,4 +31,5 @@ __all__ = [
     "DataSource",
     "StatisticalReport",
     "TransparencyReport",
+    "Resource",
 ]

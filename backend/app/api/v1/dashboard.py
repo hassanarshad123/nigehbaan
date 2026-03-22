@@ -10,12 +10,17 @@ from app.database import get_db
 from app.models.boundaries import Boundary
 from app.models.incidents import Incident
 from app.models.news_articles import DataSource
+from app.models.statistical_reports import StatisticalReport
 from app.models.tip_report import TipReportAnnual
+from app.models.transparency_reports import TransparencyReport
 from app.schemas.dashboard import (
     CaseTypeBreakdownItem,
     ConvictionRatePoint,
     DashboardSummary,
     ProvinceComparisonItem,
+    StatisticalReportItem,
+    TipReportDetailItem,
+    TransparencyReportItem,
     TrendDataPoint,
 )
 
@@ -25,6 +30,8 @@ router = APIRouter()
 @router.get("/trends", response_model=list[TrendDataPoint])
 async def get_trends(
     source: str | None = Query(default=None, description="Filter by source_type"),
+    province: str | None = Query(default=None, description="Filter by province pcode"),
+    incident_type: str | None = Query(default=None, description="Filter by incident type"),
     years: str | None = Query(
         default=None, description="Comma-separated years, e.g. 2018,2019,2020"
     ),
@@ -39,6 +46,10 @@ async def get_trends(
 
     if source is not None:
         stmt = stmt.where(Incident.source_type == source)
+    if province is not None:
+        stmt = stmt.where(Incident.province_pcode == province)
+    if incident_type is not None:
+        stmt = stmt.where(Incident.incident_type == incident_type)
 
     if years is not None:
         year_list = [int(y.strip()) for y in years.split(",") if y.strip().isdigit()]
@@ -218,3 +229,109 @@ async def get_dashboard_summary(
         avgConvictionRate=avg_conviction_rate,
         lastUpdated=last_updated,
     )
+
+
+# ---------- Statistical reports (Sahil, SPARC, DOL, UNODC, etc.) ----------
+
+
+@router.get("/statistics", response_model=list[StatisticalReportItem])
+async def get_statistics(
+    source_name: str | None = Query(default=None, description="Filter by source name"),
+    year_from: int | None = Query(default=None, description="Start year (inclusive)"),
+    year_to: int | None = Query(default=None, description="End year (inclusive)"),
+    indicator: str | None = Query(default=None, description="Filter by indicator name"),
+    db: AsyncSession = Depends(get_db),
+) -> list[StatisticalReportItem]:
+    """Return statistical report data from NGO/government/international sources."""
+    stmt = select(StatisticalReport).order_by(
+        StatisticalReport.source_name, StatisticalReport.report_year
+    )
+
+    if source_name is not None:
+        stmt = stmt.where(StatisticalReport.source_name == source_name)
+    if year_from is not None:
+        stmt = stmt.where(StatisticalReport.report_year >= year_from)
+    if year_to is not None:
+        stmt = stmt.where(StatisticalReport.report_year <= year_to)
+    if indicator is not None:
+        stmt = stmt.where(StatisticalReport.indicator.ilike(f"%{indicator}%"))
+
+    stmt = stmt.limit(500)
+    result = await db.execute(stmt)
+    rows = result.scalars().all()
+
+    return [
+        StatisticalReportItem(
+            sourceName=row.source_name,
+            reportYear=row.report_year,
+            indicator=row.indicator,
+            value=row.value,
+            unit=row.unit,
+            geographicScope=row.geographic_scope,
+        )
+        for row in rows
+    ]
+
+
+# ---------- Transparency reports (Google, Meta CSAM data) ----------
+
+
+@router.get("/transparency", response_model=list[TransparencyReportItem])
+async def get_transparency(
+    platform: str | None = Query(default=None, description="Filter by platform"),
+    metric: str | None = Query(default=None, description="Filter by metric name"),
+    db: AsyncSession = Depends(get_db),
+) -> list[TransparencyReportItem]:
+    """Return tech platform transparency report metrics."""
+    stmt = select(TransparencyReport).order_by(
+        TransparencyReport.platform, TransparencyReport.report_period
+    )
+
+    if platform is not None:
+        stmt = stmt.where(TransparencyReport.platform == platform)
+    if metric is not None:
+        stmt = stmt.where(TransparencyReport.metric.ilike(f"%{metric}%"))
+
+    stmt = stmt.limit(200)
+    result = await db.execute(stmt)
+    rows = result.scalars().all()
+
+    return [
+        TransparencyReportItem(
+            platform=row.platform,
+            reportPeriod=row.report_period,
+            metric=row.metric,
+            value=row.value,
+            unit=row.unit,
+        )
+        for row in rows
+    ]
+
+
+# ---------- TIP Report full details ----------
+
+
+@router.get("/tip-details", response_model=list[TipReportDetailItem])
+async def get_tip_details(
+    db: AsyncSession = Depends(get_db),
+) -> list[TipReportDetailItem]:
+    """Return full TIP report data including tier rankings and key findings."""
+    stmt = select(TipReportAnnual).order_by(TipReportAnnual.year)
+    result = await db.execute(stmt)
+    rows = result.scalars().all()
+
+    return [
+        TipReportDetailItem(
+            year=row.year,
+            tierRanking=row.tier_ranking,
+            investigations=row.ptpa_investigations,
+            prosecutions=row.ptpa_prosecutions,
+            convictions=row.ptpa_convictions,
+            victimsIdentified=row.victims_identified,
+            victimsReferred=row.victims_referred,
+            budgetAllocatedPkr=row.budget_allocated_pkr,
+            keyFindings=row.key_findings,
+            namedHotspots=row.named_hotspots,
+        )
+        for row in rows
+    ]

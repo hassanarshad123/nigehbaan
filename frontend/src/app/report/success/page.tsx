@@ -9,7 +9,7 @@ import { CheckCircle2, Phone, ArrowLeft } from 'lucide-react';
 
 function ReportSuccessContent() {
   const searchParams = useSearchParams();
-  const referenceNumber = searchParams.get('ref') ?? `NGH-${Date.now().toString(36).toUpperCase()}`;
+  const referenceNumber = searchParams.get('ref');
 
   return (
     <div className="min-h-screen bg-[#0F172A]">
@@ -33,15 +33,24 @@ function ReportSuccessContent() {
         </p>
 
         {/* Reference number */}
-        <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4 mb-8">
-          <p className="text-xs text-[#94A3B8] mb-1">Reference Number</p>
-          <p className="text-xl font-mono font-bold text-[#06B6D4] tracking-wider">
-            {referenceNumber}
-          </p>
-          <p className="text-xs text-[#94A3B8] mt-2">
-            Save this number for future reference
-          </p>
-        </div>
+        {referenceNumber ? (
+          <div className="rounded-lg border border-[#334155] bg-[#1E293B] p-4 mb-8">
+            <p className="text-xs text-[#94A3B8] mb-1">Reference Number</p>
+            <p className="text-xl font-mono font-bold text-[#06B6D4] tracking-wider">
+              {referenceNumber}
+            </p>
+            <p className="text-xs text-[#94A3B8] mt-2">
+              Save this number for future reference
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-[#F59E0B]/30 bg-[#F59E0B]/5 p-4 mb-8">
+            <p className="text-sm text-[#F59E0B]">
+              Your report was submitted but the reference number could not be retrieved.
+              Please contact support or try submitting again.
+            </p>
+          </div>
+        )}
 
         {/* Emergency helplines */}
         <div className="rounded-lg border border-[#EF4444]/30 bg-[#EF4444]/5 p-4 mb-8 text-left">

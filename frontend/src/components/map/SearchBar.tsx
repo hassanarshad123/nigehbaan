@@ -1,46 +1,100 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Search, X } from 'lucide-react';
+import { Search, X, MapPin, Newspaper, Scale } from 'lucide-react';
+import { fetchDistrictList, globalSearch, type DistrictListItem } from '@/lib/api';
 
-interface SearchResult {
+interface SearchResultItem {
   pcode: string;
   name: string;
-  type: 'district' | 'city';
+  type: 'district' | 'incident' | 'article' | 'judgment';
+  snippet?: string | null;
 }
-
-// Mock data for autocomplete — replaced by API in production
-const MOCK_RESULTS: SearchResult[] = [
-  { pcode: 'PK-PB-LHR', name: 'Lahore', type: 'city' },
-  { pcode: 'PK-SD-KHI', name: 'Karachi', type: 'city' },
-  { pcode: 'PK-IS-ISB', name: 'Islamabad', type: 'city' },
-  { pcode: 'PK-PB-RWP', name: 'Rawalpindi', type: 'district' },
-  { pcode: 'PK-PB-FSD', name: 'Faisalabad', type: 'district' },
-  { pcode: 'PK-PB-MUL', name: 'Multan', type: 'district' },
-  { pcode: 'PK-KP-PSH', name: 'Peshawar', type: 'district' },
-  { pcode: 'PK-BN-QTA', name: 'Quetta', type: 'district' },
-  { pcode: 'PK-SD-HYD', name: 'Hyderabad', type: 'district' },
-  { pcode: 'PK-PB-SGD', name: 'Sargodha', type: 'district' },
-];
 
 interface SearchBarProps {
-  onSelect?: (result: SearchResult) => void;
+  onSelect?: (result: SearchResultItem) => void;
 }
+
+const TYPE_CONFIG: Record<string, { bg: string; icon: React.ReactNode }> = {
+  district: { bg: 'bg-[#10B981]/10 text-[#10B981]', icon: <MapPin className="h-3 w-3" /> },
+  incident: { bg: 'bg-[#EF4444]/10 text-[#EF4444]', icon: <MapPin className="h-3 w-3" /> },
+  article: { bg: 'bg-[#06B6D4]/10 text-[#06B6D4]', icon: <Newspaper className="h-3 w-3" /> },
+  judgment: { bg: 'bg-[#F59E0B]/10 text-[#F59E0B]', icon: <Scale className="h-3 w-3" /> },
+};
 
 export function SearchBar({ onSelect }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [districts, setDistricts] = useState<DistrictListItem[]>([]);
+  const [backendResults, setBackendResults] = useState<SearchResultItem[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const filtered = query.length >= 2
-    ? MOCK_RESULTS.filter((r) =>
-        r.name.toLowerCase().includes(query.toLowerCase()),
-      )
-    : [];
+  useEffect(() => {
+    fetchDistrictList()
+      .then(setDistricts)
+      .catch(() => setDistricts([]));
+  }, []);
+
+  // Debounced backend search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (query.length < 3) {
+      setBackendResults([]);
+      return;
+    }
+
+    debounceRef.current = setTimeout(() => {
+      const VALID_TYPES = new Set<SearchResultItem['type']>(['district', 'incident', 'article', 'judgment']);
+      globalSearch(query)
+        .then((results) => {
+          setBackendResults(
+            results.map((r) => ({
+              pcode: r.districtPcode ?? '',
+              name: r.title,
+              type: VALID_TYPES.has(r.type as SearchResultItem['type'])
+                ? (r.type as SearchResultItem['type'])
+                : 'district',
+              snippet: r.snippet,
+            })),
+          );
+        })
+        .catch(() => setBackendResults([]));
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  // Local district filtering
+  const districtResults: SearchResultItem[] =
+    query.length >= 2
+      ? districts
+          .filter(
+            (d) =>
+              d.nameEn.toLowerCase().includes(query.toLowerCase()) ||
+              d.nameUr?.includes(query),
+          )
+          .slice(0, 6)
+          .map((d) => ({
+            pcode: d.pcode,
+            name: d.nameEn,
+            type: 'district' as const,
+          }))
+      : [];
+
+  // Merge: districts first, then backend results (deduplicated)
+  const districtPcodes = new Set(districtResults.map((r) => r.pcode));
+  const allResults = [
+    ...districtResults,
+    ...backendResults.filter((r) => !districtPcodes.has(r.pcode)).slice(0, 6),
+  ];
 
   const handleSelect = useCallback(
-    (result: SearchResult) => {
+    (result: SearchResultItem) => {
       setQuery(result.name);
       setIsOpen(false);
       onSelect?.(result);
@@ -51,6 +105,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
   const handleClear = useCallback(() => {
     setQuery('');
     setIsOpen(false);
+    setBackendResults([]);
     inputRef.current?.focus();
   }, []);
 
@@ -60,7 +115,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
       <div
         className={cn(
           'flex items-center rounded-lg border bg-[#1E293B] px-3',
-          isOpen && filtered.length > 0
+          isOpen && allResults.length > 0
             ? 'border-[#06B6D4] shadow-[0_0_0_2px_rgba(6,182,212,0.2)]'
             : 'border-[#334155]',
           'transition-default',
@@ -76,7 +131,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          placeholder="Search district or city..."
+          placeholder="Search district, incident, or article..."
           className="w-full bg-transparent px-2 py-2 text-sm text-[#F8FAFC] placeholder-[#94A3B8] outline-none"
         />
         {query && (
@@ -91,27 +146,36 @@ export function SearchBar({ onSelect }: SearchBarProps) {
       </div>
 
       {/* Dropdown */}
-      {isOpen && filtered.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-[#334155] bg-[#1E293B] py-1 shadow-xl z-50">
-          {filtered.map((result) => (
-            <button
-              key={result.pcode}
-              onClick={() => handleSelect(result)}
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[#F8FAFC] hover:bg-[#334155] transition-default"
-            >
-              <span
-                className={cn(
-                  'rounded px-1.5 py-0.5 text-[10px] font-medium uppercase',
-                  result.type === 'city'
-                    ? 'bg-[#06B6D4]/10 text-[#06B6D4]'
-                    : 'bg-[#10B981]/10 text-[#10B981]',
-                )}
+      {isOpen && allResults.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-[#334155] bg-[#1E293B] py-1 shadow-xl z-50 max-h-72 overflow-y-auto">
+          {allResults.map((result, idx) => {
+            const config = TYPE_CONFIG[result.type] ?? TYPE_CONFIG.district;
+            return (
+              <button
+                key={`${result.type}-${result.pcode}-${idx}`}
+                onClick={() => handleSelect(result)}
+                className="flex w-full items-start gap-2 px-3 py-2 text-sm text-[#F8FAFC] hover:bg-[#334155] transition-default"
               >
-                {result.type}
-              </span>
-              <span>{result.name}</span>
-            </button>
-          ))}
+                <span
+                  className={cn(
+                    'flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase shrink-0 mt-0.5',
+                    config.bg,
+                  )}
+                >
+                  {config.icon}
+                  {result.type}
+                </span>
+                <div className="text-left min-w-0">
+                  <span className="block truncate">{result.name}</span>
+                  {result.snippet && (
+                    <span className="block text-[10px] text-[#94A3B8] truncate">
+                      {result.snippet}
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

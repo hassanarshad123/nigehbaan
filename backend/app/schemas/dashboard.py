@@ -58,3 +58,45 @@ class DashboardSummary(BaseModel):
     data_sources_active: int = Field(..., alias="dataSourcesActive")
     avg_conviction_rate: float = Field(..., alias="avgConvictionRate")
     last_updated: datetime = Field(..., alias="lastUpdated")
+
+
+class StatisticalReportItem(BaseModel):
+    """A single indicator row from the statistical_reports table."""
+
+    model_config = {"frozen": True, "populate_by_name": True}
+
+    source_name: str = Field(..., alias="sourceName")
+    report_year: int | None = Field(default=None, alias="reportYear")
+    indicator: str | None = None
+    value: float | None = None
+    unit: str | None = None
+    geographic_scope: str | None = Field(default=None, alias="geographicScope")
+
+
+class TransparencyReportItem(BaseModel):
+    """A single metric from tech platform transparency reports."""
+
+    model_config = {"frozen": True, "populate_by_name": True}
+
+    platform: str
+    report_period: str | None = Field(default=None, alias="reportPeriod")
+    metric: str | None = None
+    value: float | None = None
+    unit: str | None = None
+
+
+class TipReportDetailItem(BaseModel):
+    """Full TIP report detail for a single year."""
+
+    model_config = {"frozen": True, "populate_by_name": True}
+
+    year: int
+    tier_ranking: str | None = Field(default=None, alias="tierRanking")
+    ptpa_investigations: int | None = Field(default=None, alias="investigations")
+    ptpa_prosecutions: int | None = Field(default=None, alias="prosecutions")
+    ptpa_convictions: int | None = Field(default=None, alias="convictions")
+    victims_identified: int | None = Field(default=None, alias="victimsIdentified")
+    victims_referred: int | None = Field(default=None, alias="victimsReferred")
+    budget_allocated_pkr: float | None = Field(default=None, alias="budgetAllocatedPkr")
+    key_findings: str | None = Field(default=None, alias="keyFindings")
+    named_hotspots: list[str] | None = Field(default=None, alias="namedHotspots")

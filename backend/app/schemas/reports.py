@@ -1,6 +1,6 @@
 """Pydantic schemas for public reporting endpoints."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -26,6 +26,7 @@ class ReportCreate(BaseModel):
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     address: str | None = Field(default=None, max_length=500)
+    incident_date: date | None = Field(default=None, alias="incidentDate")
     photos: list[str] | None = Field(default=None, description="S3 keys or URLs")
     reporter_name: str | None = Field(default=None, alias="reporterName", max_length=255)
     reporter_contact: str | None = Field(default=None, alias="reporterContact", max_length=255)
@@ -38,6 +39,8 @@ class ReportCreate(BaseModel):
         has_lon = self.longitude is not None
         if has_lat != has_lon:
             raise ValueError("latitude and longitude must both be provided or both omitted")
+        if self.incident_date is not None and self.incident_date > date.today():
+            raise ValueError("Incident date cannot be in the future")
         return self
 
 
@@ -65,12 +68,27 @@ class ReportResponse(BaseModel):
     reference_number: str = Field(..., alias="referenceNumber")
 
 
+class ReportUpdate(BaseModel):
+    """Payload for updating a report's status (admin moderation)."""
+
+    model_config = {"frozen": True, "populate_by_name": True}
+
+    status: str = Field(
+        ...,
+        description="New status: pending, under_review, verified, rejected",
+    )
+    referred_to: str | None = Field(default=None, alias="referredTo", max_length=255)
+
+
 class ReportStatus(BaseModel):
     """Current status of a previously submitted report."""
 
     model_config = {"frozen": True, "populate_by_name": True}
 
     id: int
+    reference_number: str = Field(..., alias="referenceNumber")
+    report_type: str = Field(..., alias="reportType")
     status: str
+    created_at: datetime = Field(..., alias="createdAt")
     referred_to: str | None = Field(default=None, alias="referredTo")
     updated_at: datetime = Field(..., alias="updatedAt")

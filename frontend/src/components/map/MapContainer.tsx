@@ -143,8 +143,9 @@ export function MapContainer() {
   const setViewport = useMapStore((s) => s.setViewport);
   const activeLayers = useMapStore((s) => s.activeLayers);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const { boundaries, filteredIncidents, kilns, borders, vulnerability, routes, countryMask, loading } = useMapData();
+  const { boundaries, filteredIncidents, kilns, borders, vulnerability, routes, countryMask, loading, errors } = useMapData();
   const [popup, setPopup] = useState<PopupInfo | null>(null);
+  const [errorDismissed, setErrorDismissed] = useState(false);
 
   const handleMove = useCallback(
     (evt: ViewStateChangeEvent) => {
@@ -185,8 +186,35 @@ export function MapContainer() {
   const vis = (layerId: string): 'visible' | 'none' =>
     activeLayers.includes(layerId as never) ? 'visible' : 'none';
 
+  const errorKeys = Object.keys(errors);
+
   return (
     <div className="absolute inset-0" data-tour-step="incidents">
+      {/* Map layer error banner */}
+      {errorKeys.length > 0 && !errorDismissed && (
+        <div className="absolute top-14 left-2 right-2 sm:left-auto sm:right-4 sm:w-72 z-40">
+          <div className="rounded-lg border border-[#EF4444]/30 bg-[#1E293B]/95 backdrop-blur-sm px-3 py-2 shadow-xl">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs font-medium text-[#EF4444]">Failed to load layers</p>
+              <button
+                onClick={() => setErrorDismissed(true)}
+                className="text-[#94A3B8] hover:text-[#F8FAFC] text-xs"
+                aria-label="Dismiss error"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-0.5">
+              {errorKeys.map((key) => (
+                <p key={key} className="text-[10px] text-[#94A3B8]">
+                  {key}: connection failed
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Loading overlay — shown while fetching initial map data */}
       {loading && !boundaries && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0F172A]/80 backdrop-blur-sm transition-opacity duration-500">

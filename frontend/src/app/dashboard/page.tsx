@@ -25,6 +25,18 @@ const ConvictionRates = dynamic(
   () => import('@/components/dashboard/ConvictionRates').then((m) => m.ConvictionRates),
   { ssr: false },
 );
+const StatisticalReports = dynamic(
+  () => import('@/components/dashboard/StatisticalReports').then((m) => m.StatisticalReports),
+  { ssr: false },
+);
+const TransparencyMetrics = dynamic(
+  () => import('@/components/dashboard/TransparencyMetrics').then((m) => m.TransparencyMetrics),
+  { ssr: false },
+);
+const TipReportTimeline = dynamic(
+  () => import('@/components/dashboard/TipReportTimeline').then((m) => m.TipReportTimeline),
+  { ssr: false },
+);
 
 export default function DashboardPage() {
   return (
@@ -68,6 +80,19 @@ export default function DashboardPage() {
           </ErrorBoundary>
           <ErrorBoundary>
             <ConvictionRates />
+          </ErrorBoundary>
+        </div>
+
+        {/* Extended data sections */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mt-6">
+          <ErrorBoundary>
+            <StatisticalReports />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <TransparencyMetrics />
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <TipReportTimeline />
           </ErrorBoundary>
         </div>
       </main>

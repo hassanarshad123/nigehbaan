@@ -36,34 +36,24 @@ class DistrictProfile(BaseModel):
 
 
 class DistrictVulnerability(BaseModel):
-    """All vulnerability indicator fields for a single district-year."""
+    """All vulnerability indicator fields for a single district.
+
+    Field aliases match the frontend TypeScript interface in api.ts.
+    """
 
     model_config = {"frozen": True, "populate_by_name": True}
 
-    district_pcode: str = Field(..., alias="districtPcode")
-    year: int
-
-    school_enrollment_rate: float | None = Field(default=None, alias="schoolEnrollmentRate")
-    school_dropout_rate: float | None = Field(default=None, alias="schoolDropoutRate")
-    out_of_school_children: int | None = Field(default=None, alias="outOfSchoolChildren")
+    pcode: str = Field(..., description="District P-code")
     literacy_rate: float | None = Field(default=None, alias="literacyRate")
-
-    poverty_headcount_ratio: float | None = Field(default=None, alias="povertyHeadcountRatio")
-    food_insecurity_rate: float | None = Field(default=None, alias="foodInsecurityRate")
     child_labor_rate: float | None = Field(default=None, alias="childLaborRate")
-    unemployment_rate: float | None = Field(default=None, alias="unemploymentRate")
-
-    population_under_18: int | None = Field(default=None, alias="populationUnder18")
-    birth_registration_rate: float | None = Field(default=None, alias="birthRegistrationRate")
+    poverty_headcount: float | None = Field(default=None, alias="povertyHeadcount")
+    food_insecurity: float | None = Field(default=None, alias="foodInsecurity")
+    out_of_school_rate: float | None = Field(default=None, alias="outOfSchoolRate")
     child_marriage_rate: float | None = Field(default=None, alias="childMarriageRate")
-    refugee_population: int | None = Field(default=None, alias="refugeePopulation")
-
-    brick_kiln_count: int | None = Field(default=None, alias="brickKilnCount")
-    brick_kiln_density_per_sqkm: float | None = Field(
-        default=None, alias="brickKilnDensityPerSqkm"
-    )
-    distance_to_border_km: float | None = Field(default=None, alias="distanceToBorderKm")
-    flood_affected_pct: float | None = Field(default=None, alias="floodAffectedPct")
-
+    kiln_density: float | None = Field(default=None, alias="kilnDensity")
+    border_distance_km: float | None = Field(default=None, alias="borderDistanceKm")
+    flood_exposure: float | None = Field(default=None, alias="floodExposure")
+    enrollment_rate: float | None = Field(default=None, alias="enrollmentRate")
+    incident_rate: float | None = Field(default=None, alias="incidentRate")
+    conviction_rate: float | None = Field(default=None, alias="convictionRate")
     trafficking_risk_score: float | None = Field(default=None, alias="traffickingRiskScore")
-    source: str | None = None

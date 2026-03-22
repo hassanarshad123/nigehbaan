@@ -8,10 +8,10 @@ import { ExportButton } from '@/components/ui/ExportButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { cn } from '@/lib/utils';
 import { Scale, Search, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
-import { fetchCourtJudgments, type JudgmentResponse } from '@/lib/api';
+import { fetchCourtJudgments, fetchCourtList, type JudgmentResponse } from '@/lib/api';
 import { FadeIn } from '@/components/ui/FadeIn';
 
-const COURTS = [
+const FALLBACK_COURTS = [
   'Lahore High Court',
   'Sindh High Court',
   'Peshawar High Court',
@@ -32,6 +32,12 @@ const VERDICT_STYLES: Record<string, string> = {
 };
 
 export default function LegalPage() {
+  const { data: courtList } = useQuery({
+    queryKey: ['court-list'],
+    queryFn: fetchCourtList,
+  });
+  const COURTS = courtList && courtList.length > 0 ? courtList : FALLBACK_COURTS;
+
   const [court, setCourt] = useState('');
   const [year, setYear] = useState('');
   const [ppcSection, setPpcSection] = useState('');

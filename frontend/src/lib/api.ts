@@ -97,6 +97,14 @@ export interface JudgmentResponse {
   sentenceYears: number | null;
 }
 
+export function fetchCourtList(): Promise<string[]> {
+  return apiFetch('/legal/courts');
+}
+
+export function fetchNewsSources(): Promise<string[]> {
+  return apiFetch('/news/sources');
+}
+
 export function fetchCourtJudgments(params?: {
   court?: string;
   year?: number;
@@ -191,8 +199,8 @@ export interface ReportStatusResponse {
   referredTo: string | null;
 }
 
-export function fetchReportStatus(reportId: string): Promise<ReportStatusResponse> {
-  return apiFetch(`/reports/${reportId}`);
+export function fetchReportStatus(refOrId: string): Promise<ReportStatusResponse> {
+  return apiFetch(`/reports/${encodeURIComponent(refOrId)}`);
 }
 
 // ── Export helper ────────────────────────────────────────────
@@ -385,21 +393,194 @@ export function fetchPendingReports(params?: {
   return apiFetch(`/reports/${qs ? `?${qs}` : ''}`);
 }
 
+// ── Report Moderation ──────────────────────────────────────────
+
+export function updateReportStatus(
+  reportId: number,
+  status: string,
+  referredTo?: string,
+): Promise<ReportStatusResponse> {
+  return apiFetch(`/reports/${reportId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status, referredTo }),
+  });
+}
+
 // ── Public Reports ─────────────────────────────────────────────
 
-export function submitPublicReport(report: {
+/**
+ * Convert a File to a base64-encoded data URI string.
+ */
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function submitPublicReport(report: {
   reportType: string;
   description: string;
   latitude?: number;
   longitude?: number;
+  address?: string;
+  incidentDate?: string;
+  photos?: File[];
   reporterName?: string;
   reporterContact?: string;
   isAnonymous: boolean;
 }): Promise<Record<string, unknown>> {
+  const { photos, ...rest } = report;
+
+  // Convert File objects to base64 strings for JSON transport
+  const encodedPhotos =
+    photos && photos.length > 0
+      ? await Promise.all(photos.map(fileToBase64))
+      : undefined;
+
   return apiFetch('/reports/', {
     method: 'POST',
-    body: JSON.stringify(report),
+    body: JSON.stringify({ ...rest, photos: encodedPhotos }),
   });
+}
+
+// ── News Articles ──────────────────────────────────────────────
+
+export interface NewsArticleListItem {
+  id: number;
+  title: string | null;
+  sourceName: string | null;
+  publishedDate: string | null;
+  snippet: string | null;
+  isTraffickingRelevant: boolean | null;
+  extractedLocations: unknown[] | null;
+}
+
+export interface NewsArticleDetail extends NewsArticleListItem {
+  url: string;
+  fullText: string | null;
+  relevanceScore: number | null;
+  extractedIncidents: unknown[] | null;
+  extractedEntities: unknown[] | null;
+  createdAt: string;
+}
+
+export function fetchNewsArticles(params?: {
+  sourceName?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  isTraffickingRelevant?: boolean;
+  page?: number;
+  limit?: number;
+}): Promise<NewsArticleListItem[]> {
+  const search = new URLSearchParams();
+  if (params?.sourceName) search.set('source_name', params.sourceName);
+  if (params?.dateFrom) search.set('date_from', params.dateFrom);
+  if (params?.dateTo) search.set('date_to', params.dateTo);
+  if (params?.isTraffickingRelevant != null)
+    search.set('is_trafficking_relevant', String(params.isTraffickingRelevant));
+  if (params?.page) search.set('page', String(params.page));
+  if (params?.limit) search.set('limit', String(params.limit));
+  const qs = search.toString();
+  return apiFetch(`/news/${qs ? `?${qs}` : ''}`);
+}
+
+export function fetchNewsArticle(id: number): Promise<NewsArticleDetail> {
+  return apiFetch(`/news/${id}`);
+}
+
+// ── Dashboard Extended ──────────────────────────────────────────
+
+export interface StatisticalReportItem {
+  sourceName: string;
+  reportYear: number | null;
+  indicator: string | null;
+  value: number | null;
+  unit: string | null;
+  geographicScope: string | null;
+}
+
+export interface TransparencyReportItem {
+  platform: string;
+  reportPeriod: string | null;
+  metric: string | null;
+  value: number | null;
+  unit: string | null;
+}
+
+export interface TipReportDetailItem {
+  year: number;
+  tierRanking: string | null;
+  investigations: number | null;
+  prosecutions: number | null;
+  convictions: number | null;
+  victimsIdentified: number | null;
+  victimsReferred: number | null;
+  budgetAllocatedPkr: number | null;
+  keyFindings: string | null;
+  namedHotspots: string[] | null;
+}
+
+export function fetchStatisticalReports(params?: {
+  sourceName?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  indicator?: string;
+}): Promise<StatisticalReportItem[]> {
+  const search = new URLSearchParams();
+  if (params?.sourceName) search.set('source_name', params.sourceName);
+  if (params?.yearFrom) search.set('year_from', String(params.yearFrom));
+  if (params?.yearTo) search.set('year_to', String(params.yearTo));
+  if (params?.indicator) search.set('indicator', params.indicator);
+  const qs = search.toString();
+  return apiFetch(`/dashboard/statistics${qs ? `?${qs}` : ''}`);
+}
+
+export function fetchTransparencyReports(params?: {
+  platform?: string;
+  metric?: string;
+}): Promise<TransparencyReportItem[]> {
+  const search = new URLSearchParams();
+  if (params?.platform) search.set('platform', params.platform);
+  if (params?.metric) search.set('metric', params.metric);
+  const qs = search.toString();
+  return apiFetch(`/dashboard/transparency${qs ? `?${qs}` : ''}`);
+}
+
+export function fetchTipReportDetails(): Promise<TipReportDetailItem[]> {
+  return apiFetch('/dashboard/tip-details');
+}
+
+// ── Resources ──────────────────────────────────────────────────
+
+export interface ResourceItem {
+  id: number;
+  category: string;
+  name: string;
+  description: string | null;
+  contact: string | null;
+  url: string | null;
+  sortOrder: number;
+}
+
+export function fetchResources(category?: string): Promise<ResourceItem[]> {
+  const query = category ? `?category=${encodeURIComponent(category)}` : '';
+  return apiFetch(`/resources/${query}`);
+}
+
+// ── Global Search ──────────────────────────────────────────────
+
+export interface SearchResult {
+  type: string;
+  title: string;
+  snippet: string | null;
+  districtPcode: string | null;
+}
+
+export function globalSearch(query: string): Promise<SearchResult[]> {
+  return apiFetch(`/search/?q=${encodeURIComponent(query)}`);
 }
 
 export { APIError };

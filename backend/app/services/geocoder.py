@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from pathlib import Path
 
 import httpx
@@ -98,4 +99,44 @@ class PakistanGeocoder:
                 if "pcode" in data:
                     return str(data["pcode"])
 
+        return None
+
+    def reverse_geocode_district(
+        self, lat: float, lon: float, threshold_km: float = 100.0
+    ) -> str | None:
+        """Find the nearest district pcode for given coordinates.
+
+        Uses haversine distance against all gazetteer entries.
+        Returns ``None`` if no entry is within *threshold_km*.
+        """
+        if not self.gazetteer:
+            return None
+
+        best_pcode: str | None = None
+        best_dist = float("inf")
+
+        for _name, entry in self.gazetteer.items():
+            pcode = entry.get("pcode")
+            if not pcode:
+                continue
+
+            entry_lat = float(entry.get("lat", 0))
+            entry_lon = float(entry.get("lon", 0))
+
+            dlat = math.radians(entry_lat - lat)
+            dlon = math.radians(entry_lon - lon)
+            a = (
+                math.sin(dlat / 2) ** 2
+                + math.cos(math.radians(lat))
+                * math.cos(math.radians(entry_lat))
+                * math.sin(dlon / 2) ** 2
+            )
+            dist_km = 6371.0 * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+            if dist_km < best_dist:
+                best_dist = dist_km
+                best_pcode = str(pcode)
+
+        if best_dist <= threshold_km:
+            return best_pcode
         return None

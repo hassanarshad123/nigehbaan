@@ -1,11 +1,12 @@
 """Public (citizen) report model."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
     Boolean,
     Column,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -24,8 +25,10 @@ class PublicReport(Base):
     __tablename__ = "public_reports"
 
     id: int = Column(Integer, primary_key=True, autoincrement=True)
+    reference_number: str = Column(String(20), unique=True, nullable=False, index=True)
     report_type: str = Column(String(100), nullable=False)
     description: str = Column(Text, nullable=False)
+    incident_date: date | None = Column(Date, nullable=True)
 
     geometry = Column(
         Geometry(geometry_type="POINT", srid=4326),
