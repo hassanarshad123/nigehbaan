@@ -93,3 +93,6 @@ compass_artifact_*.md
 *.tmp
 
 .vercel
+
+# Accidental images
+image.png
