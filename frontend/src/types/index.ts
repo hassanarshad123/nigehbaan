@@ -216,4 +216,6 @@ export type MapLayerId =
   | 'routes'
   | 'borders'
   | 'poverty'
-  | 'flood';
+  | 'missing'
+  | 'reports'
+  | 'convictions';

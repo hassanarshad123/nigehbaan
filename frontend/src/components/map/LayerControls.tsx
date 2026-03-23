@@ -9,9 +9,11 @@ import {
   Factory,
   Route,
   MapPin,
-  CloudRain,
   DollarSign,
   Layers,
+  Search,
+  MessageSquare,
+  Gavel,
 } from 'lucide-react';
 
 interface LayerConfig {
@@ -53,10 +55,22 @@ const LAYER_CONFIGS: LayerConfig[] = [
     icon: <DollarSign className="h-4 w-4" />,
   },
   {
-    id: 'flood',
-    label: 'Flood-Affected',
+    id: 'missing',
+    label: 'Missing Children',
     color: '#3B82F6',
-    icon: <CloudRain className="h-4 w-4" />,
+    icon: <Search className="h-4 w-4" />,
+  },
+  {
+    id: 'reports',
+    label: 'Public Reports',
+    color: '#FBBF24',
+    icon: <MessageSquare className="h-4 w-4" />,
+  },
+  {
+    id: 'convictions',
+    label: 'Conviction Rates',
+    color: '#10B981',
+    icon: <Gavel className="h-4 w-4" />,
   },
 ];
 

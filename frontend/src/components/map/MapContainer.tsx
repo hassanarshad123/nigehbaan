@@ -14,6 +14,8 @@ import Map, {
 import { useMapStore } from '@/stores/mapStore';
 import { useMapData } from '@/hooks/useMapData';
 import { IncidentPopup } from './IncidentPopup';
+import { DistrictPopup } from './DistrictPopup';
+import { buildIncidentColorExpression } from '@/lib/incidentColors';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const DARK_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
@@ -50,7 +52,7 @@ const incidentLayer: LayerProps = {
   id: 'incidents-circle',
   type: 'circle',
   paint: {
-    'circle-color': '#EF4444',
+    'circle-color': buildIncidentColorExpression() as never,
     'circle-radius': [
       'interpolate',
       ['linear'],
@@ -60,9 +62,63 @@ const incidentLayer: LayerProps = {
       20, 12,
     ],
     'circle-opacity': 0.8,
-    'circle-stroke-color': '#EF4444',
+    'circle-stroke-color': buildIncidentColorExpression() as never,
     'circle-stroke-width': 1,
     'circle-stroke-opacity': 0.4,
+  },
+};
+
+const missingLayer: LayerProps = {
+  id: 'missing-circle',
+  type: 'circle',
+  paint: {
+    'circle-color': '#3B82F6',
+    'circle-radius': 6,
+    'circle-opacity': 0.9,
+    'circle-stroke-color': '#FFFFFF',
+    'circle-stroke-width': 1.5,
+    'circle-stroke-opacity': 0.8,
+  },
+};
+
+const reportsLayer: LayerProps = {
+  id: 'reports-circle',
+  type: 'circle',
+  paint: {
+    'circle-color': '#FBBF24',
+    'circle-radius': 5,
+    'circle-opacity': 0.9,
+    'circle-stroke-color': '#FFFFFF',
+    'circle-stroke-width': 1,
+    'circle-stroke-opacity': 0.7,
+  },
+};
+
+const convictionFillLayer: LayerProps = {
+  id: 'convictions-fill',
+  type: 'fill',
+  paint: {
+    'fill-color': [
+      'interpolate',
+      ['linear'],
+      ['coalesce', ['get', 'convictionRate'], 0],
+      0, '#EF4444',
+      0.3, '#F97316',
+      0.5, '#FBBF24',
+      0.7, '#10B981',
+      1.0, '#065F46',
+    ],
+    'fill-opacity': 0.4,
+  },
+};
+
+const convictionLineLayer: LayerProps = {
+  id: 'convictions-line',
+  type: 'line',
+  paint: {
+    'line-color': '#10B981',
+    'line-width': 0.5,
+    'line-opacity': 0.6,
   },
 };
 
@@ -143,8 +199,10 @@ export function MapContainer() {
   const setViewport = useMapStore((s) => s.setViewport);
   const activeLayers = useMapStore((s) => s.activeLayers);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const { boundaries, filteredIncidents, kilns, borders, vulnerability, routes, countryMask, loading, errors } = useMapData();
+  const { boundaries, filteredIncidents, missingChildren, kilns, borders, vulnerability, routes, reports, convictions, countryMask, loading, errors } = useMapData();
   const [popup, setPopup] = useState<PopupInfo | null>(null);
+  const [districtPopup, setDistrictPopup] = useState<{ pcode: string; latitude: number; longitude: number } | null>(null);
+  const [districtData, setDistrictData] = useState<Record<string, unknown> | null>(null);
   const [errorDismissed, setErrorDismissed] = useState(false);
 
   const handleMove = useCallback(
@@ -158,14 +216,32 @@ export function MapContainer() {
     [setViewport],
   );
 
-  const handleIncidentClick = useCallback((e: MapLayerMouseEvent) => {
+  const handleMapClick = useCallback((e: MapLayerMouseEvent) => {
     const feature = e.features?.[0];
     if (!feature) return;
 
+    const layerId = (feature.layer as { id?: string })?.id ?? '';
+
+    if (layerId === 'boundaries-fill') {
+      const pcode = String(feature.properties?.pcode ?? '');
+      if (!pcode) return;
+      setPopup(null);
+      setDistrictPopup({ pcode, latitude: e.lngLat.lat, longitude: e.lngLat.lng });
+      setDistrictData(null);
+      const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '';
+      fetch(`${apiBase}/api/v1/map/district-summary/${pcode}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => { if (data) setDistrictData(data); })
+        .catch(() => {});
+      return;
+    }
+
+    // Incident or other point layer click
     const coords = feature.geometry.type === 'Point'
       ? feature.geometry.coordinates as [number, number]
       : [e.lngLat.lng, e.lngLat.lat] as [number, number];
 
+    setDistrictPopup(null);
     setPopup({
       longitude: coords[0],
       latitude: coords[1],
@@ -236,10 +312,10 @@ export function MapContainer() {
         longitude={viewport.longitude}
         zoom={viewport.zoom}
         onMove={handleMove}
-        onClick={handleIncidentClick}
+        onClick={handleMapClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        interactiveLayerIds={['incidents-circle']}
+        interactiveLayerIds={['incidents-circle', 'missing-circle', 'reports-circle', 'boundaries-fill']}
         style={{ width: '100%', height: '100%' }}
         attributionControl={true}
         maxZoom={18}
@@ -317,6 +393,40 @@ export function MapContainer() {
           </Source>
         )}
 
+        {/* Conviction rates choropleth */}
+        {convictions && (
+          <Source id="convictions" type="geojson" data={convictions}>
+            <Layer
+              {...convictionFillLayer}
+              layout={{ visibility: vis('convictions') }}
+            />
+            <Layer
+              {...convictionLineLayer}
+              layout={{ visibility: vis('convictions') }}
+            />
+          </Source>
+        )}
+
+        {/* Missing children */}
+        {missingChildren && (
+          <Source id="missing" type="geojson" data={missingChildren}>
+            <Layer
+              {...missingLayer}
+              layout={{ visibility: vis('missing') }}
+            />
+          </Source>
+        )}
+
+        {/* Public reports */}
+        {reports && (
+          <Source id="reports" type="geojson" data={reports}>
+            <Layer
+              {...reportsLayer}
+              layout={{ visibility: vis('reports') }}
+            />
+          </Source>
+        )}
+
         {/* Incident detail popup */}
         {popup && (
           <Popup
@@ -332,6 +442,26 @@ export function MapContainer() {
             <IncidentPopup
               properties={popup.properties}
               onClose={() => setPopup(null)}
+            />
+          </Popup>
+        )}
+
+        {/* District summary popup */}
+        {districtPopup && (
+          <Popup
+            latitude={districtPopup.latitude}
+            longitude={districtPopup.longitude}
+            onClose={() => setDistrictPopup(null)}
+            closeButton={false}
+            closeOnClick={false}
+            anchor="bottom"
+            offset={12}
+            className="[&>.maplibregl-popup-content]:!bg-transparent [&>.maplibregl-popup-content]:!p-0 [&>.maplibregl-popup-content]:!shadow-none [&>.maplibregl-popup-tip]:!border-t-[#1E293B]"
+          >
+            <DistrictPopup
+              pcode={districtPopup.pcode}
+              data={districtData}
+              onClose={() => setDistrictPopup(null)}
             />
           </Popup>
         )}
