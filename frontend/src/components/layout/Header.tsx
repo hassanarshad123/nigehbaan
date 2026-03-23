@@ -20,6 +20,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  User,
 } from 'lucide-react';
 
 /* ── Types ── */
@@ -62,6 +63,7 @@ const NAV_ITEMS: NavItem[] = [
     children: [
       { href: '/resources', labelKey: 'resourcesHelplines', icon: <LifeBuoy className="h-4 w-4" /> },
       { href: '/about', labelKey: 'aboutNigehbaan', icon: <Info className="h-4 w-4" /> },
+      { href: '/maker', labelKey: 'maker', icon: <User className="h-4 w-4" /> },
       { href: '/scrapers', labelKey: 'scraperCenter', icon: <Activity className="h-4 w-4" /> },
     ],
   },

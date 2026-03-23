@@ -58,7 +58,10 @@ export function Footer() {
           </div>
         </div>
         <p className="text-center text-xs text-[#64748B] mt-4 md:mt-0">
-          Made with love by Hassan
+          Made with love by{' '}
+          <Link href="/maker" className="hover:text-[#06B6D4] transition-default">
+            Hassan
+          </Link>
         </p>
       </div>
     </footer>

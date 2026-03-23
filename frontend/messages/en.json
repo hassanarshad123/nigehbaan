@@ -21,7 +21,8 @@
     "districtComparison": "District Comparison",
     "resourcesHelplines": "Resources & Helplines",
     "aboutNigehbaan": "About Nigehbaan",
-    "scraperCenter": "Scraper Command Center"
+    "scraperCenter": "Scraper Command Center",
+    "maker": "Meet the Maker"
   },
   "map": {
     "title": "Intelligence Map",
@@ -32,11 +33,50 @@
       "routes": "Trafficking Routes",
       "borders": "Border Crossings",
       "poverty": "Poverty Index",
-      "flood": "Flood-Affected Areas"
+      "missing": "Missing Children",
+      "reports": "Public Reports",
+      "convictions": "Conviction Rates"
     },
     "legend": "Legend",
     "timeline": "Timeline",
-    "yearRange": "Year Range"
+    "yearRange": "Year Range",
+    "popup": {
+      "subType": "Sub-type",
+      "perpetrator": "Perpetrator",
+      "ageRange": "Victim Age",
+      "firStatus": "FIR Filed",
+      "conviction": "Conviction",
+      "confidence": "AI Confidence",
+      "yes": "Yes",
+      "no": "No",
+      "unknown": "Unknown"
+    },
+    "filterDrawer": {
+      "title": "Filter by Incident Type",
+      "selectAll": "Select All",
+      "clearAll": "Clear All",
+      "showing": "Showing {count} of {total} types"
+    },
+    "incidentTypes": {
+      "kidnapping": "Kidnapping",
+      "child_trafficking": "Child Trafficking",
+      "sexual_abuse": "Sexual Abuse",
+      "sexual_exploitation": "Sexual Exploitation",
+      "online_exploitation": "Online Exploitation",
+      "child_labor": "Child Labor",
+      "bonded_labor": "Bonded Labor",
+      "child_marriage": "Child Marriage",
+      "child_murder": "Child Murder",
+      "honor_killing": "Honor Killing",
+      "begging_ring": "Begging Ring",
+      "organ_trafficking": "Organ Trafficking",
+      "missing": "Missing",
+      "physical_abuse": "Physical Abuse",
+      "child_pornography": "Child Pornography",
+      "abandonment": "Abandonment",
+      "medical_negligence": "Medical Negligence",
+      "other": "Other"
+    }
   },
   "dashboard": {
     "title": "Analytics Dashboard",
@@ -170,6 +210,30 @@
     "roshni": "Roshni: 0800-22444",
     "copyright": "Nigehbaan Project — Open Source Intelligence for Child Protection",
     "about": "About"
+  },
+  "maker": {
+    "title": "Meet the Maker",
+    "subtitle": "The guy who creates stuff",
+    "name": "Hassan Arshad",
+    "university": "Computer Engineering, Habib University (Sophomore)",
+    "location": "Pakistan",
+    "bioLine1": "I'm Hassan — a sophomore studying Computer Engineering at Habib University who spends way too much time building things.",
+    "bioLine2": "I founded Zensbot, an AI/tech agency that also builds its own products. Nigehbaan started because I wanted to see how I can help — Pakistan's child trafficking data is scattered across 90+ sources, locked in PDFs, not geocoded, not connected. So I built a platform to change that.",
+    "bioLine3": "When I'm not coding, I'm probably still coding.",
+    "productsTitle": "Things I've Built",
+    "nigehbaan": "Nigehbaan",
+    "nigehbaanDesc": "Open-source child trafficking intelligence platform for Pakistan. Aggregates 90+ data sources, maps every incident, and empowers those who protect children. You're looking at it.",
+    "qanoonai": "QanoonAI",
+    "qanoonaiDesc": "AI-powered legal research assistant for Pakistani law — court judgments, statutes, and precedents at your fingertips.",
+    "ictlms": "ICT LMS",
+    "ictlmsDesc": "Open-source learning management system built for modern classrooms. Course delivery, assessments, and analytics.",
+    "zenscall": "ZensCall",
+    "zenscallDesc": "AI voice agent that handles phone calls, books appointments, and never puts you on hold.",
+    "connectTitle": "Say Hello",
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "zensbot": "Zensbot",
+    "visit": "Visit"
   },
   "common": {
     "loading": "Loading...",
