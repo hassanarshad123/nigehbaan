@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Layers, X } from 'lucide-react';
 import { LayerControls } from './LayerControls';
 import { MapLegend } from './MapLegend';
+import { FilterDrawer } from './FilterDrawer';
 
 export function MobileMapControls() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +15,7 @@ export function MobileMapControls() {
       {/* Desktop: always show both components */}
       <div className="hidden sm:block space-y-2" data-tour-step="layers">
         <LayerControls />
+        <FilterDrawer />
         <MapLegend />
       </div>
 

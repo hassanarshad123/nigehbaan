@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useMapStore } from '@/stores/mapStore';
-import type { MapLayerId } from '@/types';
+import { useFilterStore } from '@/stores/filterStore';
+import type { IncidentType, MapLayerId } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -24,7 +25,7 @@ interface BorderCrossingPoint {
   vulnerabilityScore: number | null;
 }
 
-type LayerDataKey = 'boundaries' | 'incidents' | 'kilns' | 'borders' | 'vulnerability' | 'routes';
+type LayerDataKey = 'boundaries' | 'incidents' | 'kilns' | 'borders' | 'vulnerability' | 'routes' | 'reports' | 'convictions';
 
 interface MapData {
   boundaries: GeoJSONFeatureCollection | null;
@@ -33,6 +34,8 @@ interface MapData {
   borders: GeoJSONFeatureCollection | null;
   vulnerability: GeoJSONFeatureCollection | null;
   routes: GeoJSONFeatureCollection | null;
+  reports: GeoJSONFeatureCollection | null;
+  convictions: GeoJSONFeatureCollection | null;
   countryMask: GeoJSONFeatureCollection | null;
   loading: boolean;
   errors: Partial<Record<LayerDataKey, string>>;
@@ -43,6 +46,8 @@ interface MapData {
     boundaries: number;
     vulnerability: number;
     routes: number;
+    reports: number;
+    convictions: number;
   };
 }
 
@@ -69,7 +74,6 @@ function bordersToGeoJSON(points: BorderCrossingPoint[]): GeoJSONFeatureCollecti
  * The result is a dark mask that dims everything outside Pakistan.
  */
 function buildWorldMask(countryGeojson: GeoJSONFeatureCollection): GeoJSONFeatureCollection {
-  // World outer ring (counter-clockwise for GeoJSON exterior)
   const worldRing: number[][] = [
     [-180, -90],
     [180, -90],
@@ -78,14 +82,12 @@ function buildWorldMask(countryGeojson: GeoJSONFeatureCollection): GeoJSONFeatur
     [-180, -90],
   ];
 
-  // Extract all polygon rings from the country geometry to use as holes
   const holes: number[][][] = [];
 
   for (const feature of countryGeojson.features) {
     const geom = feature.geometry as { type: string; coordinates: unknown };
     if (geom.type === 'Polygon') {
       const coords = geom.coordinates as number[][][];
-      // Each ring in the polygon becomes a hole — reverse winding
       for (const ring of coords) {
         holes.push([...ring].reverse());
       }
@@ -121,6 +123,8 @@ const LAYER_ENDPOINTS: Record<LayerDataKey, string> = {
   borders: '/api/v1/map/borders',
   vulnerability: '/api/v1/map/vulnerability',
   routes: '/api/v1/map/routes',
+  reports: '/api/v1/map/reports',
+  convictions: '/api/v1/map/conviction-rates',
 };
 
 const LAYER_TO_DATA: Partial<Record<MapLayerId, LayerDataKey>> = {
@@ -129,11 +133,18 @@ const LAYER_TO_DATA: Partial<Record<MapLayerId, LayerDataKey>> = {
   borders: 'borders',
   poverty: 'vulnerability',
   routes: 'routes',
+  missing: 'incidents', // reuses incidents data, filtered client-side
+  reports: 'reports',
+  convictions: 'convictions',
 };
 
-export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureCollection | null } {
+export function useMapData(): MapData & {
+  filteredIncidents: GeoJSONFeatureCollection | null;
+  missingChildren: GeoJSONFeatureCollection | null;
+} {
   const activeLayers = useMapStore((s) => s.activeLayers);
   const yearRange = useMapStore((s) => s.yearRange);
+  const selectedTypes = useFilterStore((s) => s.selectedTypes);
   const [data, setData] = useState<Record<LayerDataKey, GeoJSONFeatureCollection | null>>({
     boundaries: null,
     incidents: null,
@@ -141,6 +152,8 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
     borders: null,
     vulnerability: null,
     routes: null,
+    reports: null,
+    convictions: null,
   });
   const [countryMask, setCountryMask] = useState<GeoJSONFeatureCollection | null>(null);
   const [loading, setLoading] = useState(true);
@@ -150,7 +163,6 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
 
   // Always fetch boundaries, country mask, and counter layers on mount
   useEffect(() => {
-    // District boundaries (level=2)
     if (!fetchedRef.current.has('boundaries')) {
       fetchedRef.current.add('boundaries');
       fetch(`${API_BASE}${LAYER_ENDPOINTS.boundaries}`)
@@ -168,7 +180,6 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
         });
     }
 
-    // Country boundary (level=0) for mask
     if (!maskFetchedRef.current) {
       maskFetchedRef.current = true;
       fetch(`${API_BASE}/api/v1/map/boundaries?level=0`)
@@ -185,8 +196,6 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
         .catch((err) => console.error('Failed to fetch country boundary for mask:', err));
     }
 
-    // Eager-fetch counter layers (incidents, kilns, borders) so LiveCounter
-    // shows real counts without requiring the user to activate each layer.
     const counterLayers: LayerDataKey[] = ['incidents', 'kilns', 'borders'];
     for (const key of counterLayers) {
       if (fetchedRef.current.has(key)) continue;
@@ -258,20 +267,36 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
     });
   }, [activeLayers]);
 
-  // Filter incidents by yearRange
+  // Filter incidents by yearRange and selectedTypes
   const filteredIncidents = React.useMemo(() => {
     if (!data.incidents) return null;
     const filtered = data.incidents.features.filter((f) => {
       const year = f.properties?.year as number | undefined;
-      if (year == null) return true;
-      return year >= yearRange[0] && year <= yearRange[1];
+      if (year != null && (year < yearRange[0] || year > yearRange[1])) return false;
+
+      if (selectedTypes.length > 0) {
+        const type = f.properties?.incidentType as string | undefined;
+        if (type && !selectedTypes.includes(type as IncidentType)) return false;
+      }
+
+      return true;
     });
     return { type: 'FeatureCollection' as const, features: filtered };
-  }, [data.incidents, yearRange]);
+  }, [data.incidents, yearRange, selectedTypes]);
+
+  // Missing children: filtered subset of incidents
+  const missingChildren = React.useMemo(() => {
+    if (!data.incidents) return null;
+    const filtered = data.incidents.features.filter(
+      (f) => f.properties?.incidentType === 'missing',
+    );
+    return { type: 'FeatureCollection' as const, features: filtered };
+  }, [data.incidents]);
 
   return {
     ...data,
     filteredIncidents,
+    missingChildren,
     countryMask,
     loading,
     errors,
@@ -282,6 +307,8 @@ export function useMapData(): MapData & { filteredIncidents: GeoJSONFeatureColle
       borders: data.borders?.features?.length ?? 0,
       vulnerability: data.vulnerability?.features?.length ?? 0,
       routes: data.routes?.features?.length ?? 0,
+      reports: data.reports?.features?.length ?? 0,
+      convictions: data.convictions?.features?.length ?? 0,
     },
   };
 }

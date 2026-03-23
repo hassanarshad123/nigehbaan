@@ -10,7 +10,9 @@ from app.database import get_db
 from app.models.border_crossings import BorderCrossing
 from app.models.boundaries import Boundary
 from app.models.brick_kilns import BrickKiln
+from app.models.court_judgments import CourtJudgment
 from app.models.incidents import Incident
+from app.models.public_reports import PublicReport
 from app.models.trafficking_routes import TraffickingRoute
 from app.models.vulnerability import VulnerabilityIndicator
 from app.schemas.common import GeoJSONFeature, GeoJSONFeatureCollection, GeoJSONGeometry
@@ -79,19 +81,27 @@ async def get_incident_points(
     Geocoded incidents use their point geometry.
     Non-geocoded incidents with a district_pcode use the district centroid.
     """
-    # Query incidents with their own geometry
+    # Query incidents with their own geometry + enrichment fields
     stmt = select(
         Incident.id,
         func.ST_Y(Incident.geometry).label("lat"),
         func.ST_X(Incident.geometry).label("lon"),
         Incident.incident_type,
+        Incident.sub_type,
         Incident.year,
         Incident.source_type,
         Incident.victim_count,
         Incident.victim_gender,
+        Incident.victim_age_min,
+        Incident.victim_age_max,
+        Incident.perpetrator_type,
+        Incident.fir_registered,
+        Incident.conviction,
+        Incident.extraction_confidence,
         Incident.district_pcode,
         Incident.location_detail,
-    )
+        Boundary.name_en.label("district_name"),
+    ).outerjoin(Boundary, Incident.district_pcode == Boundary.pcode)
 
     if geocoded_only:
         stmt = stmt.where(Incident.geometry.isnot(None))
@@ -141,11 +151,19 @@ async def get_incident_points(
             properties={
                 "id": row.id,
                 "incidentType": row.incident_type,
+                "subType": row.sub_type,
                 "year": row.year,
                 "sourceType": row.source_type,
                 "victimCount": row.victim_count,
                 "victimGender": row.victim_gender,
+                "victimAgeMin": row.victim_age_min,
+                "victimAgeMax": row.victim_age_max,
+                "perpetratorType": row.perpetrator_type,
+                "firRegistered": row.fir_registered,
+                "conviction": row.conviction,
+                "extractionConfidence": row.extraction_confidence,
                 "districtPcode": row.district_pcode,
+                "districtName": row.district_name,
                 "locationDetail": row.location_detail,
             },
         ))
@@ -378,3 +396,190 @@ async def get_border_crossings(
         )
         for row in rows
     ]
+
+
+@router.get("/conviction-rates", response_model=GeoJSONFeatureCollection)
+async def get_conviction_rates_choropleth(
+    db: AsyncSession = Depends(get_db),
+) -> GeoJSONFeatureCollection:
+    """Return per-district conviction rates as a GeoJSON choropleth.
+
+    Computes conviction rate from court_judgments grouped by incident_district_pcode,
+    joined with district boundary polygons.
+    """
+    # Aggregate court judgments per district
+    agg_stmt = (
+        select(
+            CourtJudgment.incident_district_pcode.label("pcode"),
+            func.count().label("total"),
+            func.count().filter(CourtJudgment.verdict == "convicted").label("convicted"),
+        )
+        .where(CourtJudgment.incident_district_pcode.isnot(None))
+        .group_by(CourtJudgment.incident_district_pcode)
+    )
+    agg_result = await db.execute(agg_stmt)
+    agg_rows = {r.pcode: (r.total, r.convicted) for r in agg_result.all()}
+
+    if not agg_rows:
+        return GeoJSONFeatureCollection(type="FeatureCollection", features=[])
+
+    # Fetch district boundaries for districts with judgment data
+    boundary_stmt = select(
+        Boundary.pcode,
+        Boundary.name_en,
+        func.ST_AsGeoJSON(Boundary.geometry).label("geojson"),
+    ).where(
+        Boundary.admin_level == 2,
+        Boundary.pcode.in_(list(agg_rows.keys())),
+    )
+    boundary_result = await db.execute(boundary_stmt)
+
+    features = []
+    for row in boundary_result.all():
+        total, convicted = agg_rows.get(row.pcode, (0, 0))
+        rate = convicted / total if total > 0 else 0.0
+
+        geometry = None
+        if row.geojson:
+            geom_dict = json.loads(row.geojson)
+            geometry = GeoJSONGeometry(
+                type=geom_dict["type"],
+                coordinates=geom_dict["coordinates"],
+            )
+        features.append(GeoJSONFeature(
+            type="Feature",
+            id=row.pcode,
+            geometry=geometry,
+            properties={
+                "pcode": row.pcode,
+                "nameEn": row.name_en,
+                "totalJudgments": total,
+                "convicted": convicted,
+                "convictionRate": round(rate, 3),
+            },
+        ))
+
+    return GeoJSONFeatureCollection(type="FeatureCollection", features=features)
+
+
+@router.get("/reports", response_model=GeoJSONFeatureCollection)
+async def get_public_reports_geo(
+    db: AsyncSession = Depends(get_db),
+) -> GeoJSONFeatureCollection:
+    """Return public reports as GeoJSON points."""
+    stmt = select(
+        PublicReport.id,
+        func.ST_Y(PublicReport.geometry).label("lat"),
+        func.ST_X(PublicReport.geometry).label("lon"),
+        PublicReport.report_type,
+        PublicReport.status,
+        PublicReport.district_pcode,
+        PublicReport.created_at,
+    ).where(PublicReport.geometry.isnot(None))
+
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    # Fallback: also include reports with only a district pcode (use centroid)
+    no_geo_stmt = select(
+        PublicReport.id,
+        PublicReport.report_type,
+        PublicReport.status,
+        PublicReport.district_pcode,
+        PublicReport.created_at,
+    ).where(
+        PublicReport.geometry.is_(None),
+        PublicReport.district_pcode.isnot(None),
+    )
+    no_geo_result = await db.execute(no_geo_stmt)
+    no_geo_rows = no_geo_result.all()
+
+    centroids: dict[str, tuple[float, float]] = {}
+    if no_geo_rows:
+        pcodes = {r.district_pcode for r in no_geo_rows}
+        centroid_stmt = select(
+            Boundary.pcode,
+            func.ST_Y(func.ST_Centroid(Boundary.geometry)).label("lat"),
+            func.ST_X(func.ST_Centroid(Boundary.geometry)).label("lon"),
+        ).where(Boundary.pcode.in_(pcodes))
+        centroid_result = await db.execute(centroid_stmt)
+        for cr in centroid_result.all():
+            if cr.lat and cr.lon:
+                centroids[cr.pcode] = (cr.lat, cr.lon)
+
+    features = []
+    for row in rows:
+        features.append(GeoJSONFeature(
+            type="Feature",
+            id=row.id,
+            geometry=GeoJSONGeometry(type="Point", coordinates=[row.lon, row.lat]),
+            properties={
+                "id": row.id,
+                "reportType": row.report_type,
+                "status": row.status,
+                "districtPcode": row.district_pcode,
+                "createdAt": str(row.created_at) if row.created_at else None,
+            },
+        ))
+
+    for row in no_geo_rows:
+        if row.district_pcode in centroids:
+            lat, lon = centroids[row.district_pcode]
+            features.append(GeoJSONFeature(
+                type="Feature",
+                id=row.id,
+                geometry=GeoJSONGeometry(type="Point", coordinates=[lon, lat]),
+                properties={
+                    "id": row.id,
+                    "reportType": row.report_type,
+                    "status": row.status,
+                    "districtPcode": row.district_pcode,
+                    "createdAt": str(row.created_at) if row.created_at else None,
+                },
+            ))
+
+    return GeoJSONFeatureCollection(type="FeatureCollection", features=features)
+
+
+@router.get("/district-summary/{pcode}")
+async def get_district_summary(
+    pcode: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Return a lightweight summary for the DistrictPopup overlay."""
+    # Boundary info
+    boundary_stmt = select(
+        Boundary.name_en, Boundary.name_ur,
+    ).where(Boundary.pcode == pcode)
+    boundary_row = (await db.execute(boundary_stmt)).first()
+
+    # Incident count + top types
+    type_stmt = (
+        select(
+            Incident.incident_type,
+            func.count().label("cnt"),
+        )
+        .where(Incident.district_pcode == pcode)
+        .group_by(Incident.incident_type)
+        .order_by(func.count().desc())
+    )
+    type_result = await db.execute(type_stmt)
+    type_rows = type_result.all()
+
+    total_incidents = sum(r.cnt for r in type_rows)
+    top_types = [{"type": r.incident_type, "count": r.cnt} for r in type_rows[:5]]
+
+    # Risk score from vulnerability indicators
+    risk_stmt = select(
+        VulnerabilityIndicator.trafficking_risk_score,
+    ).where(VulnerabilityIndicator.district_pcode == pcode).limit(1)
+    risk_row = (await db.execute(risk_stmt)).first()
+
+    return {
+        "pcode": pcode,
+        "nameEn": boundary_row.name_en if boundary_row else pcode,
+        "nameUr": boundary_row.name_ur if boundary_row else "",
+        "incidentCount": total_incidents,
+        "riskScore": risk_row.trafficking_risk_score if risk_row else None,
+        "topTypes": top_types,
+    }
