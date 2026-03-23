@@ -45,7 +45,8 @@ jobs:
             MAPBOX_TOKEN=${{ secrets.MAPBOX_TOKEN }}
             ENVEOF
 
-            # Build and deploy
+            # Stop old containers, build and deploy
+            docker compose -f docker-compose.prod.yml down --remove-orphans || true
             docker compose -f docker-compose.prod.yml build
             docker compose -f docker-compose.prod.yml up -d
 
