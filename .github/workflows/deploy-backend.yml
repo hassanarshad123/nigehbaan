@@ -36,6 +36,7 @@ jobs:
             OPENAI_API_BASE=${{ secrets.OPENAI_API_BASE }}
             OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
             FIRECRAWL_API_URL=${{ secrets.FIRECRAWL_API_URL }}
+            FIRECRAWL_API_KEY=${{ secrets.FIRECRAWL_API_KEY }}
             EXTERNAL_JUDGMENTS_DB_URL=${{ secrets.EXTERNAL_JUDGMENTS_DB_URL }}
             S3_BUCKET=nigehbaan-data
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}

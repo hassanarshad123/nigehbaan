@@ -1548,6 +1548,36 @@ def scraper_health_check(self) -> dict:
 
 
 @celery_app.task(
+    name="app.tasks.scraping_tasks.firecrawl_discovery",
+    bind=True,
+    max_retries=2,
+    autoretry_for=(Exception,),
+    retry_backoff=300,
+)
+def firecrawl_discovery(self) -> dict:
+    """Run Firecrawl-powered autonomous discovery of new child trafficking data."""
+    logger.info("Starting Firecrawl discovery")
+
+    async def _run():
+        records = await _run_scraper(
+            "data.scrapers.firecrawl_discovery", "FirecrawlDiscoveryScraper"
+        )
+        if records:
+            article_ids = await _save_news_articles(records, "firecrawl_discovery")
+            await _update_data_source("firecrawl_discovery", len(records))
+            _enqueue_ai_processing(article_ids)
+            return {
+                "status": "completed",
+                "discovered": len(records),
+                "saved": len(article_ids),
+            }
+        await _update_data_source("firecrawl_discovery", 0)
+        return {"status": "completed", "discovered": 0}
+
+    return _run_async(_run())
+
+
+@celery_app.task(
     name="app.tasks.scraping_tasks.scraper_auto_upgrade",
     bind=True,
     max_retries=1,
