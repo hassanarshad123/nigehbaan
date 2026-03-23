@@ -404,6 +404,12 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(minute="5,15,25,35,45,55"),  # every 10 min, offset 5 from health check
         "options": {"queue": "processing"},
     },
+    # ── Firecrawl discovery ───────────────────────────────────────────
+    "firecrawl_discovery": {
+        "task": "app.tasks.scraping_tasks.firecrawl_discovery",
+        "schedule": crontab(minute=0, hour=6, day_of_week=3),  # weekly Wednesday 06:00
+        "options": {"queue": "scraping"},
+    },
     # ── External data imports ────────────────────────────────────────
     "import_external_judgments": {
         "task": "app.tasks.import_tasks.import_external_judgments",

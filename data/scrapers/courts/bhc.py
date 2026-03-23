@@ -64,6 +64,7 @@ class BHCScraper(BaseCourtScraper):
     source_url: str = "https://portal.bhc.gov.pk/case-status/"
     schedule: str = "0 3 * * 5"
     priority: str = "P1"
+    use_firecrawl: bool = True  # BHC SPA needs JS rendering; Firecrawl handles this without Playwright
 
     def __init__(self) -> None:
         super().__init__()

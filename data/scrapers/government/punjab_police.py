@@ -33,6 +33,7 @@ class PunjabPoliceScraper(BaseScraper):
     priority: str = "P1"
     rate_limit_delay: float = 2.0
     request_timeout: float = 60.0
+    use_firecrawl: bool = True  # Punjab Police WAF blocks datacenter IPs
 
     async def fetch_missing_persons(self) -> list[dict[str, Any]]:
         """Fetch and parse the quarterly missing persons list."""
